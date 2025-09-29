@@ -1,0 +1,148 @@
+
+@font-face {
+  font-family: 'segoesc';
+  src: url('../../../public/fonts/segoesc.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'tw-cen-mt-std-bold';
+  src: url('../../../public/fonts/tw-cen-mt-std/TwCenMTStdSemiBold.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.special-m {
+  font-family: 'segoesc', sans-serif; /* Tipografía específica para la "M" */
+}
+
+.special-rest {
+  font-family: 'tw-cen-mt-std-bold', sans-serif; /* Tipografía para el resto de la palabra */
+}
+
+
+.two-column-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.two-column-layout-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centra el contenido verticalmente */
+  gap: 2rem; /* Espaciado entre el título y el texto */
+}
+
+.two-column-layout-title {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #52691a;
+  margin-top: -2rem; /* Mueve el título más arriba */
+}
+
+.two-column-layout-text {
+  font-size: 1.5rem;
+  color: #333;
+  margin-top: auto; /* Empuja el texto hacia el centro */
+  margin-bottom: auto; /* Centra el texto verticalmente */
+}
+
+.two-column-layout-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.two-column-layout-image {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.two-column-layout-button {
+  padding: 0.8rem 1.5rem;
+  background-color: #52691a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.two-column-layout-button:hover {
+  background-color: #128c7e;
+}
+
+/* Responsive styles */
+@media (max-width: 900px) {
+  .two-column-layout {
+    flex-direction: column; /* Cambia a diseño vertical */
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .two-column-layout-left,
+  .two-column-layout-right {
+    flex: none;
+    width: 100%; /* Ocupa todo el ancho */
+    text-align: center; /* Centra el contenido en pantallas pequeñas */
+  }
+
+  .two-column-layout-title {
+    font-size: 3rem; /* Reduce el tamaño del título */
+    margin-top: 0;
+  }
+
+  .two-column-layout-text {
+    font-size: 1.2rem; /* Reduce el tamaño del texto */
+  }
+
+  .two-column-layout-image {
+    max-width: 250px; /* Reduce el tamaño máximo en tablets */
+  }
+}
+
+@media (max-width: 600px) {
+  .two-column-layout-image {
+    max-width: 200px; /* Hace la imagen más pequeña en móviles */
+    width: 80%; /* Limita el ancho al 80% del contenedor */
+  }
+  .two-column-layout-title {
+    font-size: 2.5rem; /* Ajusta el tamaño del título para móviles */
+  }
+
+  .two-column-layout-text {
+    font-size: 1rem; /* Ajusta el tamaño del texto para móviles */
+  }
+
+  .two-column-layout-button {
+    font-size: 0.9rem; /* Ajusta el tamaño del botón */
+    padding: 0.6rem 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .two-column-layout-image {
+    max-width: 150px; /* Imagen aún más pequeña en dispositivos muy pequeños */
+    width: 70%; /* Limita el ancho al 70% del contenedor */
+  }
+  
+  .two-column-layout-title {
+    font-size: 2rem; /* Título más pequeño */
+  }
+  
+  .two-column-layout-text {
+    font-size: 0.9rem; /* Texto más pequeño */
+  }
+}

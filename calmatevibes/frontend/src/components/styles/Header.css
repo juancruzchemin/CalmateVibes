@@ -1,0 +1,34 @@
+/* Contenedor principal del header */
+.header-container {
+  display: flex;
+  align-items: center; /* Alinea los elementos verticalmente al centro */
+  justify-content: space-between; /* Espacia los elementos: logo a la izquierda, carrito y sidebar a la derecha */
+  padding: 0 1rem;
+  background-color: #52691a;
+  height: 100px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor para el carrito y el sidebar */
+.header-right {
+  display: flex; /* Alinea los elementos en una fila */
+  align-items: center; /* Alinea verticalmente al centro */
+  gap: 1rem; /* Espaciado entre el carrito y el sidebar */
+}
+
+
+/* Estilos para que este la imagen centrada */
+/* .header-container img {
+  position: absolute; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  height: 150px; 
+  cursor: pointer; 
+}
+
+.header-container a {
+  flex: 1; 
+  display: flex;
+  justify-content: center; 
+} */
+/* Estilos para que este la imagen centrada */
