@@ -3,7 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Popup from '../components/Popup';
 import PreviewItem from '../components/PreviewItem';
-import ItemForm from '../components/ItemForm';
+// import ItemForm from '../components/ItemForm'; // Commented out - not currently used
 import AdminFilters from '../components/AdminFilters';
 import AdminItemsView from '../components/AdminItemsView';
 import EditItemModal from '../components/EditItemModal';
@@ -34,14 +34,14 @@ function Stock() {
   const [offers, setOffers] = useState([]); // estado para las ofertas
   const [showHelpModal, setShowHelpModal] = useState(false); // mostrar modal de ayuda
   
-  const [formData, setFormData] = useState({
-    nombre: '',
-    precioVenta: '',
-    descripcion: '',
-    stock: 0,
-    imagenes: [],
-    catalogo: '',
-  });
+  // const [formData, setFormData] = useState({
+  //   nombre: '',
+  //   precioVenta: '',
+  //   descripcion: '',
+  //   stock: 0,
+  //   imagenes: [],
+  //   catalogo: '',
+  // });
 
 
   // Cargar catálogos desde archivos JSON
@@ -67,7 +67,8 @@ function Stock() {
     fetchCatalogos();
   }, []);
 
-  // Manejar cambios en el formulario
+  // Manejar cambios en el formulario - Commented out (not currently used)
+  /*
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -88,6 +89,7 @@ function Stock() {
       imagenes: prevData.imagenes.filter((_, i) => i !== index),
     }));
   };
+  */
 
   // Agregar un nuevo catálogo
   const handleAddCatalogo = (nombre) => {

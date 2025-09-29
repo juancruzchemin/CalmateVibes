@@ -3,7 +3,7 @@ import { CarritoContext } from '../context/CarritoContext.js';
 import Header from './Header.js';
 import Footer from './Footer.js';
 import EmptyState from './EmptyState.js';
-import WhatsAppCompra from './WhatsAppCompra.js';
+// import WhatsAppCompra from './WhatsAppCompra.js'; // Commented out - not currently used
 import PopupRedireccion from './PopupRedireccion.js'; // Importa el popup
 import './styles/Carrito.css';
 

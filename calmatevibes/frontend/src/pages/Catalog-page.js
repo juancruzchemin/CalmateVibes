@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import Header from '../components/Header.js';
 import Footer from '../components/Footer.js';
 import Catalogo from '../components/Catalog.js';
-import CatalogoIndice from '../components/CatalogoIndice.js';
+// import CatalogoIndice from '../components/CatalogoIndice.js'; // Commented out - not currently used
 import Breadcrumb from '../components/Breadcrumb.js';
 import MobileFilters from '../components/MobileFilters.js';
 
@@ -65,7 +65,8 @@ function Catalog() {
     });
 
     return () => {
-      sectionRefs.current.forEach((ref) => {
+      const currentRefs = sectionRefs.current;
+      currentRefs.forEach((ref) => {
         if (ref) observer.unobserve(ref);
       });
     };

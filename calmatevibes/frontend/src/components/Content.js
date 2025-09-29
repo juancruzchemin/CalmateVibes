@@ -14,7 +14,7 @@ function Content({
   image, // Nueva prop para la imagen
   imageAlt = '', // Texto alternativo opcional
 }) {
-  const gradient = `linear-gradient(to bottom, ${color1} 100%, ${color2} 100%)`;
+  // const gradient = `linear-gradient(to bottom, ${color1} 100%, ${color2} 100%)`; // Commented out - not currently used
   const textColor = colorLead;
   const titleColor = colorTitle;
 

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import catalogosData from '../data/tiendas.json';
 import './styles/CategorySelector.css';
 
 function CategorySelector({ currentCategory }) {
   const navigate = useNavigate();
-  const { catalogoId } = useParams();
+  // const { catalogoId } = useParams(); // Commented out - not currently used
   const [isOpen, setIsOpen] = useState(false);
 
   // Función para obtener el número de productos de cada catálogo
@@ -27,9 +27,9 @@ function CategorySelector({ currentCategory }) {
     setIsOpen(!isOpen);
   };
 
-  const currentCatalog = catalogosData.catalogos.find(cat => 
-    cat.nombre === currentCategory
-  );
+  // const currentCatalog = catalogosData.catalogos.find(cat => 
+  //   cat.nombre === currentCategory
+  // ); // Commented out - not currently used
 
   return (
     <div className="category-selector">

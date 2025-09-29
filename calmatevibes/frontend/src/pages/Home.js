@@ -13,7 +13,7 @@ import './styles/Home.css';
 
 function Home() {
   const sectionRefs = useRef([]);
-  const [imagesLoaded, setImagesLoaded] = useState({});
+  // const [imagesLoaded, setImagesLoaded] = useState({}); // Commented out - not currently used
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -27,17 +27,17 @@ function Home() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  useEffect(() => {
-    // Preload de imágenes críticas
-    const criticalImages = ['/javi-mate.jpeg', '/divisor-beige.jpg'];
-    criticalImages.forEach(src => {
-      const img = new Image();
-      img.src = src;
-      img.onload = () => {
-        setImagesLoaded(prev => ({ ...prev, [src]: true }));
-      };
-    });
-  }, []);
+  // useEffect(() => {
+  //   // Preload de imágenes críticas
+  //   const criticalImages = ['/javi-mate.jpeg', '/divisor-beige.jpg'];
+  //   criticalImages.forEach(src => {
+  //     const img = new Image();
+  //     img.src = src;
+  //     img.onload = () => {
+  //       setImagesLoaded(prev => ({ ...prev, [src]: true }));
+  //     };
+  //   });
+  // }, []);
 
   useEffect(() => {
     // Sistema personalizado de animación en scroll con delays escalonados
@@ -65,13 +65,15 @@ function Home() {
     });
 
     return () => {
-      sectionRefs.current.forEach((ref) => {
+      const currentRefs = sectionRefs.current;
+      currentRefs.forEach((ref) => {
         if (ref) observer.unobserve(ref);
       });
     };
-  }, [prefersReducedMotion]);
+  }, []);
 
-  // Componente de imagen con lazy loading y parallax
+  // Componente de imagen con lazy loading y parallax - Commented out (not currently used)
+  /*
   const LazyImage = ({ src, alt, className, parallax = false }) => {
     const [loaded, setLoaded] = useState(false);
     const imgRef = useRef();
@@ -107,6 +109,7 @@ function Home() {
       </div>
     );
   };
+  */
 
   return (
     <div className="home-page">

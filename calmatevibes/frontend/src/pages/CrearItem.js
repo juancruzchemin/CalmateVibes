@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header.js';
 import Footer from '../components/Footer.js';
 import ItemForm from '../components/ItemForm.js';
-import TemplateManager from '../components/TemplateManager.js';
-import Breadcrumb from '../components/Breadcrumb.js';
+// import TemplateManager from '../components/TemplateManager.js'; // Commented out - not currently used
+// import Breadcrumb from '../components/Breadcrumb.js'; // Commented out - not currently used
 
 import './styles/CrearItem.css';
 
 function CrearItem() {
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  // const [selectedTemplate, setSelectedTemplate] = useState(null); // Commented out - not currently used
   const [matesDisponibles, setMatesDisponibles] = useState([]);
   const [bombillasDisponibles, setBombillasDisponibles] = useState([]);
-  const [productoAEditar, setProductoAEditar] = useState(null);
+  const [productoAEditar] = useState(null); // Removed setProductoAEditar - not currently used
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 

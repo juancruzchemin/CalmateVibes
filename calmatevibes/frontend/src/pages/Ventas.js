@@ -22,7 +22,7 @@ function Ventas() {
   
   // Estados de UI
   const [showExportModal, setShowExportModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  // const [selectedProduct, setSelectedProduct] = useState(null); // Commented out - not currently used
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
 
@@ -195,9 +195,9 @@ function Ventas() {
   };
 
   // Handlers
-  const handleProductClick = (product) => {
-    setSelectedProduct(product);
-  };
+  // const handleProductClick = (product) => {
+  //   setSelectedProduct(product);
+  // };
 
   const handleExport = (format) => {
     console.log(`Exportando en formato: ${format}`);
@@ -255,7 +255,7 @@ function Ventas() {
           <VentasDashboard 
             metrics={getDashboardMetrics()}
             data={filteredData}
-            onProductClick={handleProductClick}
+            // onProductClick={handleProductClick}
           />
 
           {/* Filtros */}
@@ -275,7 +275,7 @@ function Ventas() {
           {/* Lista de productos */}
           <VentasProductList
             products={currentItems}
-            onProductClick={handleProductClick}
+            // onProductClick={handleProductClick}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
