@@ -110,8 +110,24 @@ El diseño utiliza una paleta de colores cálidos inspirada en la cultura del ma
 
 ## 🚀 Deployment
 
-El proyecto está preparado para deployment en:
-- **Frontend**: Netlify (configuración incluida)
+### Netlify (Frontend) - Ready to Deploy! 🎉
+
+El proyecto está **completamente configurado** para deployment inmediato en Netlify:
+
+**📁 Archivos de configuración incluidos:**
+- ✅ `netlify.toml` - Configuración automática de build
+- ✅ `_redirects` - Manejo de React Router
+- ✅ Scripts de deployment (`deploy.ps1`, `deploy.sh`)
+- ✅ Guía completa en `DEPLOYMENT.md`
+
+**🚀 Deploy en 3 pasos:**
+1. Conectar repositorio GitHub a Netlify
+2. Configurar: `Base: calmatevibes/frontend | Build: npm run build | Publish: build`
+3. ¡Deploy automático!
+
+**🔗 URL del repositorio:** [github.com/juancruzchemin/CalmateVibes](https://github.com/juancruzchemin/CalmateVibes)
+
+### Otras opciones:
 - **Backend**: Heroku, DigitalOcean, AWS
 - **Base de Datos**: MongoDB Atlas
 

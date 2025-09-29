@@ -1,0 +1,57 @@
+[build]
+  # Directory to build the frontend from
+  base = "calmatevibes/frontend"
+  # Directory where the build output goes
+  publish = "build"
+  # The build command for React
+  command = "npm run build"
+
+[build.environment]
+  # Node.js version to use
+  NODE_VERSION = "18"
+  # Make sure to install dependencies first
+  NPM_FLAGS = "--prefix . --silent"
+
+[[redirects]]
+  # Handle client-side routing - redirect all routes to index.html
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[dev]
+  # Development server settings
+  command = "npm start"
+  port = 3000
+  targetPort = 3000
+  framework = "#create-react-app"
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache images
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "*.jpeg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
