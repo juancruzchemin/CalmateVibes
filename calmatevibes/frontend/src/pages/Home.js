@@ -60,17 +60,17 @@ function Home() {
     }, observerOptions);
 
     // Observar todas las secciones
-    sectionRefs.current.forEach((ref) => {
+    const currentRefs = sectionRefs.current;
+    currentRefs.forEach((ref) => {
       if (ref) observer.observe(ref);
     });
 
     return () => {
-      const currentRefs = sectionRefs.current;
       currentRefs.forEach((ref) => {
         if (ref) observer.unobserve(ref);
       });
     };
-  }, []);
+  }, [prefersReducedMotion]);
 
   // Componente de imagen con lazy loading y parallax - Commented out (not currently used)
   /*

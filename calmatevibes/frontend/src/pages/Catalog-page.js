@@ -60,12 +60,12 @@ function Catalog() {
       });
     }, observerOptions);
 
-    sectionRefs.current.forEach((ref) => {
+    const currentRefs = sectionRefs.current;
+    currentRefs.forEach((ref) => {
       if (ref) observer.observe(ref);
     });
 
     return () => {
-      const currentRefs = sectionRefs.current;
       currentRefs.forEach((ref) => {
         if (ref) observer.unobserve(ref);
       });

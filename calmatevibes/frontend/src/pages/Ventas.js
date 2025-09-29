@@ -104,6 +104,7 @@ function Ventas() {
       setFilteredData(mockVentasData);
       setLoading(false);
     }, 1000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Aplicar filtros cuando cambien
