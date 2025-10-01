@@ -15,7 +15,7 @@ function CarritoIcono({ carrito = [] }) { // Valor predeterminado para carrito
   }, [carrito]);
 
   return (
-    <Link to="/carrito" className="carrito-icono" aria-label="Ir al carrito">
+    <Link to="/cart" className="carrito-icono" aria-label="Ir al carrito">
       <i className="bi bi-cart3"></i>
       <span className={`cart-counter ${animateCart ? 'animate' : ''}`}>
         {carrito.length}

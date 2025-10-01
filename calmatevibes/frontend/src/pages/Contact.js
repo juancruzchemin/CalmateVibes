@@ -21,15 +21,14 @@ function Contact() {
     const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
     
-    // Inicializar AOS solo si no se prefiere motion reducido
-    if (!mediaQuery.matches) {
-      AOS.init({ 
-        duration: 600, 
-        once: true,
-        offset: 100,
-        easing: 'ease-out-cubic'
-      });
-    }
+    // Simplificar AOS para evitar problemas en iPhone
+    AOS.init({ 
+      duration: 400, 
+      once: true,
+      offset: 50,
+      easing: 'ease',
+      disable: 'mobile' // Deshabilitar en móviles para evitar problemas
+    });
     
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
@@ -50,33 +49,21 @@ function Contact() {
 
       <div className="contact-content-container">
         {/* Instagram Section */}
-        <div 
-          className="contact-section instagram-section"
-          data-aos={!prefersReducedMotion ? "fade-up" : undefined}
-          data-aos-delay="100"
-        >
+        <div className="contact-section instagram-section">
           <Content
             title="Seguinos en Instagram"
             lead="Descubrí nuestros productos, novedades y el mundo del mate"
-            color1="#b7c774"
-            color2="#52691a"
-            colorTitle='#ffffff'
-            colorLead='#ffffff'
+            colorTitle='#52691a'
+            colorLead='#52691a'
           />
-          <InstagramFeed background="transparent" />
+          <InstagramFeed background="#b7c774" />
         </div>
 
         {/* WhatsApp Section */}
-        <div 
-          className="contact-section whatsapp-section"
-          data-aos={!prefersReducedMotion ? "fade-up" : undefined}
-          data-aos-delay="200"
-        >
+        <div className="contact-section whatsapp-section">
           <Content
             title="Contactanos por WhatsApp"
             lead="¿Tenés alguna consulta? ¡Escribinos y te respondemos al instante!"
-            color1="#52691a"
-            color2="#b7c774"
             colorTitle='#ffffff'
             colorLead='#ffffff'
           >
@@ -85,16 +72,10 @@ function Contact() {
         </div>
 
         {/* Additional Contact Methods Section */}
-        <div 
-          className="contact-section"
-          data-aos={!prefersReducedMotion ? "fade-up" : undefined}
-          data-aos-delay="300"
-        >
+        <div className="contact-section">
           <Content
             title="Otras formas de contacto"
             lead="También podés encontrarnos en"
-            color1="#f8f9fa"
-            color2="#e9ecef"
             colorTitle='#52691a'
             colorLead='#666666'
           >

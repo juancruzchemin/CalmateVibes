@@ -10,7 +10,7 @@ import Login from './pages/Login.js';
 import ItemDetail from './pages/ItemDetail.js';
 import Stock from './pages/Stock.js';
 import Ventas from './pages/Ventas.js';
-import Carrito from './components/Carrito.js'; // Importa el componente del carrito
+import Cart from './pages/Cart.js'; // Importa la nueva página del carrito
 import { CarritoProvider } from './context/CarritoContext.js'; // Importa el contexto del carrito
 import catalogos from './data/tiendas.json';
 import CrearItem from './pages/CrearItem.js';
@@ -53,7 +53,7 @@ function App() {
             }
           />
           <Route path="/ventas" element={<Ventas />} /> {/* Nueva ruta para la página de ventas */}
-          <Route path="/carrito" element={<Carrito />} /> {/* Ruta para el carrito */}
+          <Route path="/cart" element={<Cart />} /> {/* Nueva ruta para la página del carrito completa */}
           <Route path="/create-item" element={<CrearItem />} /> {/* Nueva ruta para crear un ítem */}
         </Routes>
       </Router>

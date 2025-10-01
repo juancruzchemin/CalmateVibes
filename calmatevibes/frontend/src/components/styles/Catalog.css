@@ -144,9 +144,11 @@
 /* Acciones del producto */
 .catalogo-item-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   gap: 12px;
   margin-top: 12px;
+  justify-content: space-between;
 }
 
 /* Controles de cantidad */
@@ -154,10 +156,8 @@
   display: flex;
   align-items: center;
   gap: 0;
-  border: 1px solid #e5e5e5;
   border-radius: 2px;
   width: fit-content;
-  align-self: flex-start;
 }
 
 .quantity-btn {
@@ -199,15 +199,16 @@
   background: #52691a;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 12px 20px;
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease;
-  width: 100%;
-  border-radius: 0;
+  border-radius: 4px;
+  flex: 1;
+  white-space: nowrap;
 }
 
 .add-to-cart-btn:hover {
@@ -485,18 +486,21 @@
   }
   
   .catalogo-item-actions {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
   
   .quantity-controls {
-    align-self: flex-start;
+    flex-shrink: 0;
   }
   
   .add-to-cart-btn {
-    width: 100%;
-    padding: 8px 16px;
-    font-size: 0.75rem;
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    min-width: 0;
   }
   
   .quantity-btn {
@@ -600,23 +604,27 @@
   /* Adaptar acciones para móvil pequeño */
   .catalogo-item-actions {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     padding: 4px;
     margin-top: 4px;
   }
   
   /* Controles de cantidad más compactos */
   .quantity-controls {
-    transform: scale(0.85);
-    align-self: center;
+    transform: scale(0.9);
+    flex-shrink: 0;
   }
   
   /* Botón de carrito más compacto */
   .add-to-cart-btn {
-    padding: 6px 12px;
-    font-size: 0.7rem;
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.75rem;
     font-weight: 600;
+    min-width: 0;
   }
   
   /* Ocultar controles desktop en móviles */
@@ -748,20 +756,24 @@
   /* Mantener acciones visibles en este rango */
   .catalogo-item-actions {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     padding: 8px;
   }
   
   /* Ajustar tamaño de controles */
   .quantity-controls {
-    align-self: center;
+    flex-shrink: 0;
     transform: scale(0.9);
   }
   
   .add-to-cart-btn {
+    flex: 1;
     padding: 8px 16px;
     font-size: 0.8rem;
+    min-width: 0;
   }
 }
 
