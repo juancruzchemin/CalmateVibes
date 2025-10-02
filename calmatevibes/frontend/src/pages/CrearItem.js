@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header.js';
-import Footer from '../components/Footer.js';
-import ItemForm from '../components/ItemForm.js';
-// import TemplateManager from '../components/TemplateManager.js'; // Commented out - not currently used
-// import Breadcrumb from '../components/Breadcrumb.js'; // Commented out - not currently used
+import Header from '../components/layout/Header.js';
+import Footer from '../components/layout/Footer.js';
+import ItemForm from '../components/admin/ItemForm.js';
 
 import './styles/CrearItem.css';
 

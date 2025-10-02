@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
-import Header from '../components/Header.js';
-import Footer from '../components/Footer.js';
-import Content from '../components/Content.js';
-import InstagramFeed from '../components/InstagramFeed.js';
-import WhatsappButton from '../components/WhatsappButton.js';
+import Header from '../components/layout/Header.js';
+import Footer from '../components/layout/Footer.js';
+import Content from '../components/layout/Content.js';
+import InstagramFeed from '../components/home/InstagramFeed.js';
+import WhatsappButton from '../components/shared/WhatsappButton.js';
 import './styles/Contact.css';
 
 function Contact() {

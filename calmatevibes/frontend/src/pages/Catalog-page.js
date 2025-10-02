@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import Header from '../components/Header.js';
-import Footer from '../components/Footer.js';
-import Catalogo from '../components/Catalog.js';
-// import CatalogoIndice from '../components/CatalogoIndice.js'; // Commented out - not currently used
-import Breadcrumb from '../components/Breadcrumb.js';
-import MobileFilters from '../components/MobileFilters.js';
+import Header from '../components/layout/Header.js';
+import Footer from '../components/layout/Footer.js';
+import Catalogo from '../components/catalog/Catalog.js';
+// import CatalogoIndice from '../components/catalog/CatalogoIndice.js'; // Commented out - not currently used
+import Breadcrumb from '../components/ui/Breadcrumb.js';
+import MobileFilters from '../components/catalog/MobileFilters.js';
 
 import './styles/Catalog-page.css';
 

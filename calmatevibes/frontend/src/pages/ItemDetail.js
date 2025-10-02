@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import Header from '../components/Header.js';
-import Footer from '../components/Footer.js';
-import Notification from '../components/Notification.js'; // Importa el componente Notification
+import Header from '../components/layout/Header.js';
+import Footer from '../components/layout/Footer.js';
+import Notification from '../components/ui/Notification.js'; // Importa el componente Notification
 import { CarritoContext } from '../context/CarritoContext.js';
 import './styles/ItemDetail.css';
 

@@ -1,0 +1,335 @@
+/* ========== PEDIDOS STATS STYLES ========== */
+.pedidos-stats {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transition: all 0.3s ease;
+}
+
+/* Clickable Cards */
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Types */
+.stat-card.pendientes {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffffff 100%);
+  border-color: #ffeaa7;
+}
+
+.stat-card.pendientes::before {
+  background: #ffc107;
+}
+
+.stat-card.pendientes:hover {
+  background: linear-gradient(135deg, #fff3cd 0%, #fffbf0 100%);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.stat-card.enviados {
+  background: linear-gradient(135deg, #cce5ff 0%, #ffffff 100%);
+  border-color: #b3d7ff;
+}
+
+.stat-card.enviados::before {
+  background: #007bff;
+}
+
+.stat-card.enviados:hover {
+  background: linear-gradient(135deg, #cce5ff 0%, #f0f8ff 100%);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.stat-card.entregados {
+  background: linear-gradient(135deg, #d4edda 0%, #ffffff 100%);
+  border-color: #c3e6cb;
+}
+
+.stat-card.entregados::before {
+  background: #28a745;
+}
+
+.stat-card.entregados:hover {
+  background: linear-gradient(135deg, #d4edda 0%, #f0fff0 100%);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.stat-card.total {
+  background: linear-gradient(135deg, #e8f4e8 0%, #ffffff 100%);
+  border-color: #c8e6c8;
+}
+
+.stat-card.total::before {
+  background: #52691a;
+}
+
+.stat-card.total:hover {
+  background: linear-gradient(135deg, #e8f4e8 0%, #f0fff0 100%);
+  box-shadow: 0 4px 12px rgba(82, 105, 26, 0.2);
+}
+
+/* Stat Icon */
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stat-card.pendientes .stat-icon {
+  background: rgba(255, 193, 7, 0.2);
+  color: #856404;
+}
+
+.stat-card.enviados .stat-icon {
+  background: rgba(0, 123, 255, 0.2);
+  color: #004085;
+}
+
+.stat-card.entregados .stat-icon {
+  background: rgba(40, 167, 69, 0.2);
+  color: #155724;
+}
+
+.stat-card.total .stat-icon {
+  background: rgba(82, 105, 26, 0.2);
+  color: #52691a;
+}
+
+.stat-icon i {
+  font-size: 1.5rem;
+}
+
+/* Stat Content */
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #495057;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Hover Effects for Clickable Cards */
+.stat-card.clickable:hover .stat-number {
+  color: #212529;
+}
+
+.stat-card.clickable:hover .stat-label {
+  color: #495057;
+}
+
+.stat-card.clickable:hover .stat-icon {
+  transform: scale(1.1);
+}
+
+/* Active State */
+.stat-card.active {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.pendientes.active {
+  box-shadow: 0 6px 16px rgba(255, 193, 7, 0.3);
+  border-color: #ffc107;
+}
+
+.stat-card.enviados.active {
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.3);
+  border-color: #007bff;
+}
+
+.stat-card.entregados.active {
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+  border-color: #28a745;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-icon {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .stat-icon i {
+    font-size: 1.3rem;
+  }
+  
+  .stat-number {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .pedidos-stats {
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .stat-icon i {
+    font-size: 1.2rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    gap: 0.5rem;
+  }
+  
+  .stat-icon {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .stat-icon i {
+    font-size: 1.1rem;
+  }
+  
+  .stat-number {
+    font-size: 1.4rem;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+  }
+}
+
+/* Animation for number changes */
+.stat-number {
+  transition: all 0.3s ease;
+}
+
+/* Tooltip styles */
+.stat-card.clickable {
+  position: relative;
+}
+
+.stat-card.clickable::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.stat-card.clickable:hover::after {
+  opacity: 1;
+}
+
+/* Loading state */
+.stat-card.loading .stat-number {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  color: transparent;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

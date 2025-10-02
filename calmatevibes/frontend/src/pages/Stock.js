@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import Popup from '../components/Popup';
-import PreviewItem from '../components/PreviewItem';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
+import Popup from '../components/ui/Popup';
+import PreviewItem from '../components/features/PreviewItem';
 // import ItemForm from '../components/ItemForm'; // Commented out - not currently used
-import AdminFilters from '../components/AdminFilters';
-import AdminItemsView from '../components/AdminItemsView';
-import EditItemModal from '../components/EditItemModal';
-import AddItemModal from '../components/AddItemModal';
-import SimpleCategoryManager from '../components/SimpleCategoryManager';
+import AdminFilters from '../components/admin/AdminFilters';
+import AdminItemsView from '../components/admin/AdminItemsView';
+import EditItemModal from '../components/admin/EditItemModal';
+import AddItemModal from '../components/admin/AddItemModal';
+import SimpleCategoryManager from '../components/admin/SimpleCategoryManager';
 
 import './styles/Stock.css';
 

@@ -1,7 +1,7 @@
 .notification {
-  position: fixed;
-  top: 24px;
-  right: 24px;
+  position: fixed !important;
+  top: 24px !important;
+  right: 24px !important;
   background: linear-gradient(135deg, #52691a 0%, #6b8527 100%);
   color: white;
   padding: 18px 24px;
@@ -11,13 +11,18 @@
     0 4px 20px rgba(0, 0, 0, 0.2);
   font-size: 1rem;
   font-weight: 600;
-  z-index: 99999;
+  z-index: 999999 !important;
   animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) 2.5s;
+  pointer-events: auto;
+  isolation: isolate;
   max-width: 350px;
   min-width: 300px;
   backdrop-filter: blur(12px);
   border: 2px solid rgba(255, 255, 255, 0.2);
   transform: translateZ(0);
+  margin: 0 !important;
+  box-sizing: border-box;
+  will-change: transform, opacity;
 }
 
 .notification-content {

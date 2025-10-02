@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import VentasDashboard from '../components/VentasDashboard';
-import VentasFilters from '../components/VentasFilters';
-import VentasProductList from '../components/VentasProductList';
-import VentasExportModal from '../components/VentasExportModal';
+import Header from '../components/layout/Header';
+import VentasDashboard from '../components/admin/VentasDashboard';
+import VentasFilters from '../components/admin/VentasFilters';
+import VentasProductList from '../components/admin/VentasProductList';
+import VentasExportModal from '../components/admin/VentasExportModal';
 import './styles/Ventas.css';
 import '../styles/MobileUtilities.css';
 

@@ -10,8 +10,7 @@ function CartItems({ items, onUpdateQuantity, onRemoveItem }) {
     };
 
     return (
-        <div className="cart-items">
-            
+        <div className="cart-items">            
             <div className="cart-items-list">
                 {items.map((item) => (
                     <div key={item.id} className="cart-item">
@@ -39,14 +38,14 @@ function CartItems({ items, onUpdateQuantity, onRemoveItem }) {
 
                         {/* Segunda sección: Controles (cantidad, subtotal, eliminar) */}
                         <div className="cart-item-controls">
-                            <div className="quantity-controls">
-                                <label htmlFor={`quantity-${item.id}`} className="quantity-label">
+                            <div className="cart-quantity-controls">
+                                <label htmlFor={`quantity-${item.id}`} className="cart-quantity-label">
                                     Cantidad:
                                 </label>
-                                <div className="quantity-input-group">
+                                <div className="cart-quantity-input-group">
                                     <button
                                         type="button"
-                                        className="quantity-btn quantity-decrease"
+                                        className="cart-quantity-btn cart-quantity-decrease"
                                         onClick={() => handleQuantityChange(item.id, item.cantidad - 1)}
                                         disabled={item.cantidad <= 1}
                                         aria-label="Disminuir cantidad"
@@ -61,13 +60,13 @@ function CartItems({ items, onUpdateQuantity, onRemoveItem }) {
                                         max="99"
                                         value={item.cantidad}
                                         onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
-                                        className="quantity-input"
+                                        className="cart-quantity-input"
                                         aria-label={`Cantidad de ${item.nombre}`}
                                     />
                                     
                                     <button
                                         type="button"
-                                        className="quantity-btn quantity-increase"
+                                        className="cart-quantity-btn cart-quantity-increase"
                                         onClick={() => handleQuantityChange(item.id, item.cantidad + 1)}
                                         disabled={item.cantidad >= 99}
                                         aria-label="Aumentar cantidad"

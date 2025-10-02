@@ -1,8 +1,8 @@
 // src/pages/Cart.js
 import React, { useContext, useState, useEffect } from 'react';
 import { CarritoContext } from '../context/CarritoContext.js';
-import Header from '../components/Header.js';
-import Footer from '../components/Footer.js';
+import Header from '../components/layout/Header.js';
+import Footer from '../components/layout/Footer.js';
 import CartItems from '../components/cart/CartItems.js';
 import CartSummary from '../components/cart/CartSummary.js';
 import EmptyCart from '../components/cart/EmptyCart.js';

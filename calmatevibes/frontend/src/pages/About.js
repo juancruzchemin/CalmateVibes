@@ -1,9 +1,9 @@
 // src/pages/Home.js
 import React from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import Content from '../components/Content';
-import InstagramFeed from '../components/InstagramFeed';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
+import Content from '../components/layout/Content';
+import InstagramFeed from '../components/home/InstagramFeed';
 
 function About() {
   return (

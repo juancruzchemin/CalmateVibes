@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import Header from '../components/Header.js';
-import Footer from '../components/Footer.js';
-import Content from '../components/Content.js';
-import Tienda from '../components/Tienda.js';
-import InstagramFeed from '../components/InstagramFeed.js';
-import FullImage from '../components/FullImage.js';
-import SectionDividerImage from '../components/SectionDividerImage.js';
-import CuradosBanner from '../components/CuradosBanner.js';
+import Header from '../components/layout/Header.js';
+import Footer from '../components/layout/Footer.js';
+import Content from '../components/layout/Content.js';
+import Tienda from '../components/catalog/Tienda.js';
+import InstagramFeed from '../components/home/InstagramFeed.js';
+import FullImage from '../components/features/FullImage.js';
+import SectionDividerImage from '../components/home/SectionDividerImage.js';
+import CuradosBanner from '../components/home/CuradosBanner.js';
 
 import './styles/Home.css';
 
