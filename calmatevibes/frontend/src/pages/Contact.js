@@ -11,17 +11,7 @@ import WhatsappButton from '../components/shared/WhatsappButton.js';
 import './styles/Contact.css';
 
 function Contact() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
   useEffect(() => {
-    // Detectar preferencia de motion reducido
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-    
-    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    
-    // Simplificar AOS para evitar problemas en iPhone
     AOS.init({ 
       duration: 400, 
       once: true,
@@ -29,8 +19,6 @@ function Contact() {
       easing: 'ease',
       disable: 'mobile' // Deshabilitar en móviles para evitar problemas
     });
-    
-    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   return (

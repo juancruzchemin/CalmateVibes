@@ -1,7 +1,6 @@
 // src/components/cart/CheckoutForm.js
 import React, { useState, useEffect } from 'react';
 import './styles/CheckoutForm.css';
-import CartSummary from './CartSummary';
 
 function CheckoutForm({
     initialData,
@@ -53,7 +52,7 @@ function CheckoutForm({
         }
 
         // Teléfono
-        const telefonoRegex = /^[\d\s\-\+\(\)]{8,}$/;
+        const telefonoRegex = /^[\d\s\-+()]{8,}$/;
         if (!formData.telefono.trim()) {
             newErrors.telefono = 'El teléfono es requerido';
         } else if (!telefonoRegex.test(formData.telefono.replace(/\s/g, ''))) {

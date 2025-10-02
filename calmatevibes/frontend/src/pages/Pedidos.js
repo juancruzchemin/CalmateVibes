@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import PedidosStats from '../components/admin/PedidosStats';
@@ -124,7 +124,7 @@ function Pedidos() {
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...pedidos];
 
     // Filtrar por estado
@@ -151,7 +151,7 @@ function Pedidos() {
     }
 
     setFilteredPedidos(filtered);
-  };
+  }, [pedidos, filters]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
