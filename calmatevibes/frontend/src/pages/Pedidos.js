@@ -31,10 +31,40 @@ function Pedidos() {
     fetchPedidos();
   }, []);
 
+  // Función para aplicar filtros
+  const applyFilters = useCallback(() => {
+    let filtered = [...pedidos];
+
+    // Filtrar por estado
+    if (filters.estado !== 'todos') {
+      filtered = filtered.filter(pedido => pedido.estado === filters.estado);
+    }
+
+    // Filtrar por búsqueda (número de pedido, cliente, email)
+    if (filters.busqueda) {
+      const busqueda = filters.busqueda.toLowerCase();
+      filtered = filtered.filter(pedido => 
+        pedido.numero.toLowerCase().includes(busqueda) ||
+        pedido.cliente.nombre.toLowerCase().includes(busqueda) ||
+        pedido.cliente.email.toLowerCase().includes(busqueda)
+      );
+    }
+
+    // Filtrar por fechas
+    if (filters.fechaDesde) {
+      filtered = filtered.filter(pedido => pedido.fechaPedido >= filters.fechaDesde);
+    }
+    if (filters.fechaHasta) {
+      filtered = filtered.filter(pedido => pedido.fechaPedido <= filters.fechaHasta);
+    }
+
+    setFilteredPedidos(filtered);
+  }, [pedidos, filters]);
+
   // Aplicar filtros
   useEffect(() => {
     applyFilters();
-  }, [pedidos, filters]);
+  }, [pedidos, filters, applyFilters]);
 
   const fetchPedidos = async () => {
     try {
@@ -123,35 +153,6 @@ function Pedidos() {
       setLoading(false);
     }
   };
-
-  const applyFilters = useCallback(() => {
-    let filtered = [...pedidos];
-
-    // Filtrar por estado
-    if (filters.estado !== 'todos') {
-      filtered = filtered.filter(pedido => pedido.estado === filters.estado);
-    }
-
-    // Filtrar por búsqueda (número de pedido, cliente, email)
-    if (filters.busqueda) {
-      const busqueda = filters.busqueda.toLowerCase();
-      filtered = filtered.filter(pedido => 
-        pedido.numero.toLowerCase().includes(busqueda) ||
-        pedido.cliente.nombre.toLowerCase().includes(busqueda) ||
-        pedido.cliente.email.toLowerCase().includes(busqueda)
-      );
-    }
-
-    // Filtrar por fechas
-    if (filters.fechaDesde) {
-      filtered = filtered.filter(pedido => pedido.fechaPedido >= filters.fechaDesde);
-    }
-    if (filters.fechaHasta) {
-      filtered = filtered.filter(pedido => pedido.fechaPedido <= filters.fechaHasta);
-    }
-
-    setFilteredPedidos(filtered);
-  }, [pedidos, filters]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
