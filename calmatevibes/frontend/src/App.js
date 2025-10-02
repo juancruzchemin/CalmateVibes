@@ -10,6 +10,7 @@ import Login from './pages/Login.js';
 import ItemDetail from './pages/ItemDetail.js';
 import Stock from './pages/Stock.js';
 import Pedidos from './pages/Pedidos.js';
+import MisPedidos from './pages/MisPedidos.js';
 import Ventas from './pages/Ventas.js';
 import Cart from './pages/Cart.js'; // Importa la nueva página del carrito
 import { CarritoProvider } from './context/CarritoContext.js'; // Importa el contexto del carrito
@@ -54,6 +55,7 @@ function App() {
             }
           />
           <Route path="/pedidos" element={<Pedidos />} /> {/* Nueva ruta para la página de pedidos */}
+          <Route path="/mis-pedidos" element={<MisPedidos />} /> {/* Nueva ruta para mis pedidos del cliente */}
           <Route path="/ventas" element={<Ventas />} /> {/* Nueva ruta para la página de ventas */}
           <Route path="/cart" element={<Cart />} /> {/* Nueva ruta para la página del carrito completa */}
           <Route path="/create-item" element={<CrearItem />} /> {/* Nueva ruta para crear un ítem */}
