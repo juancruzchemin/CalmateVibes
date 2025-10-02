@@ -43,7 +43,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, userRole }) {
           <li className="sidebar-menu-item"><Link to="/care" onClick={handleLinkClick}>Cuidados</Link></li>
           <li className="sidebar-menu-item"><Link to="/contact" onClick={handleLinkClick}>Contacto</Link></li>
           <li className="sidebar-menu-item"><Link to="/mis-pedidos" onClick={handleLinkClick}>Mis Pedidos</Link></li>
-          <li className="sidebar-menu-item"><Link to="/cart">Carrito</Link></li>
+          <li className="sidebar-menu-item"><Link to="/cart">Carrito </Link></li>
 
 
           {/* Sección de Administración */}
