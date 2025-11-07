@@ -1350,3 +1350,191 @@
         display: none;
     }
 }
+
+/* ========== NEW STEP-BASED PAYMENT STYLES ========== */
+
+.step-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.step-header h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #52691a;
+    margin-bottom: 0.5rem;
+}
+
+.step-header p {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.payment-card {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.payment-card:hover {
+    border-color: #b7c774;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.payment-card.selected {
+    border-color: #52691a;
+    background: #f8faf3;
+    box-shadow: 0 4px 20px rgba(82, 105, 26, 0.1);
+}
+
+.payment-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.payment-header input[type="radio"] {
+    margin: 0;
+}
+
+.payment-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.payment-card p {
+    margin: 0 0 0 1.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.mercadopago-container,
+.whatsapp-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.whatsapp-btn {
+    background: #25d366;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.whatsapp-btn:hover {
+    background: #128c7e;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.step-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    color: #6c757d;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+.btn-primary {
+    background: #52691a;
+    border: 2px solid #52691a;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #3e4e13;
+    border-color: #3e4e13;
+    transform: translateY(-1px);
+}
+
+.order-summary {
+    background: #f8faf3;
+    border: 1px solid #e2e8d4;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.order-summary h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #52691a;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.summary-line.total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8d4;
+    font-size: 1.1rem;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+    .step-navigation {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn-secondary,
+    .btn-primary {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .payment-card {
+        padding: 1rem;
+    }
+    
+    .mercadopago-container,
+    .whatsapp-container {
+        margin-left: 0;
+    }
+}

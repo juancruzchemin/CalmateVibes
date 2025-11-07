@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { CarritoContext } from '../../context/CarritoContext.js';
+import React, { useState } from 'react';
+import { useCarrito } from '../../context/CarritoContext.js';
 import Header from './Header.js';
 import Footer from './Footer.js';
 import EmptyState from './EmptyState.js';
@@ -8,10 +8,13 @@ import PopupRedireccion from './PopupRedireccion.js'; // Importa el popup
 import '../styles/Carrito.css';
 
 function Carrito() {
-    const { carrito, eliminarDelCarrito, vaciarCarrito, actualizarCantidad } = useContext(CarritoContext);
+    const { carrito, eliminarDelCarrito, vaciarCarrito, actualizarCantidad, total: carritoTotal } = useCarrito();
     const [mostrarPopup, setMostrarPopup] = useState(false); // Estado para mostrar el popup
 
-    const total = carrito.reduce((sum, item) => sum + item.precioVenta * item.cantidad, 0);
+    const total = carritoTotal || carrito.reduce((sum, item) => {
+        const precio = item.precioUnitario || item.precioVenta || item.precio || 0;
+        return sum + precio * item.cantidad;
+    }, 0);
 
     // Función para generar el mensaje de WhatsApp
     const generarMensajeWhatsApp = () => {
@@ -50,7 +53,7 @@ function Carrito() {
                             <ul>
                                 {carrito.map((item) => (
                                     <li key={item.id}>
-                                        <img src={item.imagen} alt={item.nombre} />
+                                        <img src={item.imagenes?.[0]?.url || item.imagen || '/placeholder.svg'} alt={item.nombre} />
                                         <span>{item.nombre}</span>
                                         <span>${item.precioVenta}</span>
                                         <input

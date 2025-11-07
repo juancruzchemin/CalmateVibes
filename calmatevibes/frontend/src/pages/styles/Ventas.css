@@ -1,12 +1,13 @@
 /* ========== VENTAS PAGE ========== */
 .ventas-page {
-  min-height: 100vh;
+  min-height: 100vh;  
 }
 
 .ventas-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
+  padding-top: 4rem;
 }
 
 /* ========== HEADER ========== */

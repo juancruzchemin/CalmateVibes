@@ -1,339 +1,148 @@
-// src/components/cart/PaymentMethod.js
 import React, { useState } from 'react';
+import { useCarrito } from '../../context/CarritoContext';
+import MercadoPagoButton from './MercadoPagoButton';
 import './styles/PaymentMethod.css';
 
-function PaymentMethod({
-    selectedMethod,
-    onMethodChange,
-    onMercadoPagoPayment,
-    onWhatsAppPurchase,
-    onBack,
-    isLoading,
-    total,
-    // Props para CartSummary y customer info
-    items = [],
-    itemCount = 0,
-    subtotal = 0,
-    envio = 0,
-    showShipping = false,
-    customerInfo
-}) {
-    const [acceptTerms, setAcceptTerms] = useState(false);
+const PaymentMethod = ({ onNext, onBack }) => {
+  const [selectedMethod, setSelectedMethod] = useState('');
 
-    const handleProceedPayment = () => {
-        if (!acceptTerms) {
-            alert('Debes aceptar los términos y condiciones para continuar.');
-            return;
-        }
+  // Obtener datos del carrito
+  const { carrito, total, cantidadTotal } = useCarrito();
 
-        if (selectedMethod === 'mercadopago') {
-            onMercadoPagoPayment();
-        } else {
-            onWhatsAppPurchase();
-        }
+  // Preparar datos para MercadoPago
+  const prepareOrderData = () => {
+    if (!carrito || !carrito.length) {
+      console.warn('⚠️ Carrito vacío o no disponible');
+      return null;
+    }
+
+    const orderData = {
+      carrito: {
+        items: carrito.map(item => ({
+          _id: item._id,
+          nombre: item.nombre,
+          descripcion: item.descripcion,
+          cantidad: item.cantidad,
+          precioVenta: item.precioVenta
+        }))
+      },
+      total: total,
+      customer: {
+        nombre: 'Cliente',
+        apellido: 'Test',
+        email: 'test@calmatevibes.com' // Email válido para pruebas
+      },
+      shipping: {}
     };
+    return orderData;
+  };
 
-    return (
-        <div className="payment-method">
-            {/* Vista móvil - Desplegables paso a paso */}
-            <div className="mobile-payment-steps">
+  const handleMethodSelect = (method) => {
+    setSelectedMethod(method);
+  };
 
-                {/* Paso 1: Productos en tu carrito - Completado (cerrado con check) */}
-                <div className="mobile-step-section completed">
-                    <div className="mobile-step-header">
-                        <div className="step-info">
-                            <span className="step-number">1</span>
-                            <span className="step-title">Productos en tu carrito</span>
-                        </div>
-                        <div className="step-status">
-                            <i className="bi bi-check-circle-fill"></i>
-                        </div>
-                    </div>
-                    {/* Este desplegable siempre está cerrado */}
-                </div>
+  const handleWhatsAppContact = () => {
+    // Preparar mensaje para WhatsApp
+    const items = carrito.map(item =>
+      `• ${item.nombre} x${item.cantidad} - $${(item.precioVenta * item.cantidad).toLocaleString()}`
+    ).join('\n');
 
-                {/* Paso 2: Datos de envío - Completado (cerrado con check) */}
-                <div className="mobile-step-section completed">
-                    <div className="mobile-step-header">
-                        <div className="step-info">
-                            <span className="step-number">2</span>
-                            <span className="step-title">Datos de envío</span>
-                        </div>
-                        <div className="step-status">
-                            <i className="bi bi-check-circle-fill"></i>
-                        </div>
-                    </div>
-                    {/* Este desplegable está cerrado porque ya fue completado */}
-                </div>
+    const message = `¡Hola! Me interesa realizar una compra:\n\n${items}\n\n*Total: $${total.toLocaleString()}*\n\n¿Podrían ayudarme con el proceso de compra?`;
 
-                {/* Paso 3: Método de pago - Activo (abierto con el contenido del pago) */}
-                <div className="mobile-step-section active">
-                    <div className="mobile-step-header">
-                        <div className="step-info">
-                            <span className="step-number">3</span>
-                            <span className="step-title">Método de pago</span>
-                        </div>
-                        <div className="step-status">
-                            <i className="bi bi-chevron-down"></i>
-                        </div>
-                    </div>
-                    <div className="mobile-step-content">
-                        {/* Contenido del método de pago */}
-                        <div className="payment-method-content">
-                            <h2 className="payment-method-title">Elige tu método de pago</h2>
+    // Número de WhatsApp (reemplaza con tu número)
+    const phoneNumber = '5491234567890'; // Formato: código país + número sin espacios ni símbolos
 
-                            <div className="payment-options">
-                                {/* MercadoPago Option */}
-                                <div
-                                    className={`payment-option ${selectedMethod === 'mercadopago' ? 'selected' : ''}`}
-                                    onClick={() => onMethodChange('mercadopago')}
-                                >
-                                    <div className="payment-option-header">
-                                        <div className="payment-radio">
-                                            <input
-                                                type="radio"
-                                                id="mercadopago"
-                                                name="paymentMethod"
-                                                value="mercadopago"
-                                                checked={selectedMethod === 'mercadopago'}
-                                                onChange={() => onMethodChange('mercadopago')}
-                                            />
-                                            <label htmlFor="mercadopago"></label>
-                                        </div>
+    const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappURL, '_blank');
+  };
 
-                                        <div className="payment-info">
-                                            <h3 className="payment-title">
-                                                <i className="payment-icon mp-icon"></i>
-                                                MercadoPago
-                                            </h3>
-                                            <p className="payment-description">
-                                                Pago online seguro con tarjeta, efectivo o transferencia
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+  const handleNext = () => {
+    if (selectedMethod && onNext) {
+      onNext({ paymentMethod: selectedMethod });
+    }
+  };
 
-                                {/* WhatsApp Option */}
-                                <div
-                                    className={`payment-option ${selectedMethod === 'whatsapp' ? 'selected' : ''}`}
-                                    onClick={() => onMethodChange('whatsapp')}
-                                >
-                                    <div className="payment-option-header">
-                                        <div className="payment-radio">
-                                            <input
-                                                type="radio"
-                                                id="whatsapp"
-                                                name="paymentMethod"
-                                                value="whatsapp"
-                                                checked={selectedMethod === 'whatsapp'}
-                                                onChange={() => onMethodChange('whatsapp')}
-                                            />
-                                            <label htmlFor="whatsapp"></label>
-                                        </div>
+  // Preparar orderData una sola vez
+  const orderData = prepareOrderData();
 
-                                        <div className="payment-info">
-                                            <h3 className="payment-title">
-                                                <i className="bi bi-whatsapp payment-icon whatsapp-icon"></i>
-                                                WhatsApp
-                                            </h3>
-                                            <p className="payment-description">
-                                                Coordina el pago directamente con nuestro vendedor
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+  return (
+    <div className="payment-method">
 
-                            {/* Terms and Conditions */}
-                            <div className="terms-section">
-                                <label className="terms-checkbox">
-                                    <input
-                                        type="checkbox"
-                                        checked={acceptTerms}
-                                        onChange={(e) => setAcceptTerms(e.target.checked)}
-                                    />
-                                    <span className="checkmark"></span>
-                                    <span className="terms-text">
-                                        Acepto los <a href="/terminos" target="_blank">términos y condiciones</a> y la <a href="/privacidad" target="_blank">política de privacidad</a>
-                                    </span>
-                                </label>
-                            </div>
-
-                            {/* Payment Actions Mobile */}
-                            <div className="mobile-payment-actions">
-                                <button
-                                    className="mobile-btn-back"
-                                    onClick={onBack}
-                                    disabled={isLoading}
-                                >
-                                    <i className="bi bi-arrow-left"></i>
-                                    Volver al Checkout
-                                </button>
-
-                                <button
-                                    className={`mobile-btn-pay ${selectedMethod}`}
-                                    onClick={handleProceedPayment}
-                                    disabled={isLoading || !acceptTerms}
-                                >
-                                    {isLoading ? (
-                                        <>
-                                            <span className="spinner"></span>
-                                            Procesando...
-                                        </>
-                                    ) : selectedMethod === 'mercadopago' ? (
-                                        <>
-                                            <i className="payment-icon mp-icon"></i>
-                                            Pagar con MercadoPago
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="bi bi-whatsapp"></i>
-                                            Continuar por WhatsApp
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Security Notice */}
-                            <div className="security-notice">
-                                <i className="bi bi-shield-check"></i>
-                                <span>Tu información está protegida con encriptación SSL</span>
-                            </div>
-                        </div>                        
-                    </div>
-                </div>
-            </div>
-
-            {/* Vista desktop - formulario tradicional */}
-            <div className="desktop-payment">
-                <h2 className="payment-method-title">Elige tu método de pago</h2>
-
-                <div className="payment-options">
-                    {/* MercadoPago Option */}
-                    <div
-                        className={`payment-option ${selectedMethod === 'mercadopago' ? 'selected' : ''}`}
-                        onClick={() => onMethodChange('mercadopago')}
-                    >
-                        <div className="payment-option-header">
-                            <div className="payment-radio">
-                                <input
-                                    type="radio"
-                                    id="mercadopago-desktop"
-                                    name="paymentMethod"
-                                    value="mercadopago"
-                                    checked={selectedMethod === 'mercadopago'}
-                                    onChange={() => onMethodChange('mercadopago')}
-                                />
-                                <label htmlFor="mercadopago-desktop"></label>
-                            </div>
-                            <div className="payment-info">
-                                <div className="payment-name">
-                                    <i className="payment-icon mp-icon"></i>
-                                    MercadoPago
-                                </div>
-                                <div className="payment-description">
-                                    Tarjetas de crédito, débito y efectivo
-                                </div>
-                            </div>
-                            <div className="payment-badges">
-                                <span className="badge">Visa</span>
-                                <span className="badge">Mastercard</span>
-                                <span className="badge">+</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* WhatsApp Option */}
-                    <div
-                        className={`payment-option ${selectedMethod === 'whatsapp' ? 'selected' : ''}`}
-                        onClick={() => onMethodChange('whatsapp')}
-                    >
-                        <div className="payment-option-header">
-                            <div className="payment-radio">
-                                <input
-                                    type="radio"
-                                    id="whatsapp-desktop"
-                                    name="paymentMethod"
-                                    value="whatsapp"
-                                    checked={selectedMethod === 'whatsapp'}
-                                    onChange={() => onMethodChange('whatsapp')}
-                                />
-                                <label htmlFor="whatsapp-desktop"></label>
-                            </div>
-                            <div className="payment-info">
-                                <div className="payment-name">
-                                    <i className="bi bi-whatsapp"></i>
-                                    WhatsApp
-                                </div>
-                                <div className="payment-description">
-                                    Coordina el pago directamente por WhatsApp
-                                </div>
-                            </div>
-                            <div className="payment-badges">
-                                <span className="badge direct">Directo</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Terms and Conditions */}
-                <div className="terms-section">
-                    <label className="terms-checkbox">
-                        <input
-                            type="checkbox"
-                            checked={acceptTerms}
-                            onChange={(e) => setAcceptTerms(e.target.checked)}
-                        />
-                        <span className="checkmark"></span>
-                        Acepto los <a href="/terms" target="_blank">términos y condiciones</a> y la <a href="/privacy" target="_blank">política de privacidad</a>
-                    </label>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="payment-actions">
-                    <button
-                        type="button"
-                        className="btn-back"
-                        onClick={onBack}
-                        disabled={isLoading}
-                    >
-                        <i className="bi bi-arrow-left"></i>
-                        Volver
-                    </button>
-
-                    <button
-                        type="button"
-                        className={`btn-pay ${selectedMethod || ''}`}
-                        onClick={handleProceedPayment}
-                        disabled={isLoading || !selectedMethod || !acceptTerms}
-                    >
-                        {isLoading ? (
-                            <>
-                                <span className="spinner"></span>
-                                Procesando...
-                            </>
-                        ) : selectedMethod === 'mercadopago' ? (
-                            <>
-                                <i className="payment-icon mp-icon"></i>
-                                Pagar con MercadoPago
-                            </>
-                        ) : (
-                            <>
-                                <i className="bi bi-whatsapp"></i>
-                                Continuar por WhatsApp
-                            </>
-                        )}
-                    </button>
-                </div>
-
-                {/* Security Notice */}
-                <div className="security-notice">
-                    <i className="bi bi-shield-check"></i>
-                    <span>Tu información está protegida con encriptación SSL</span>
-                </div>
-            </div>
+      {/* Opciones de pago */}
+      <div className="payment-options">
+        <div
+          className={`payment-card ${selectedMethod === 'mercadopago' ? 'selected' : ''}`}
+          onClick={() => handleMethodSelect('mercadopago')}
+        >
+          <div className="payment-header">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="mercadopago"
+              checked={selectedMethod === 'mercadopago'}
+              onChange={() => handleMethodSelect('mercadopago')}
+            />
+            <h4>MercadoPago</h4>
+          </div>
+          <p>Pagá con tarjeta de crédito, débito o dinero en cuenta</p>
         </div>
-    );
-}
+
+        <div
+          className={`payment-card ${selectedMethod === 'whatsapp' ? 'selected' : ''}`}
+          onClick={() => handleMethodSelect('whatsapp')}
+        >
+          <div className="payment-header">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="whatsapp"
+              checked={selectedMethod === 'whatsapp'}
+              onChange={() => handleMethodSelect('whatsapp')}
+            />
+            <h4>Contacto por WhatsApp</h4>
+          </div>
+          <p>Coordiná tu compra directamente con nosotros</p>
+        </div>
+      </div>
+
+      {/* Botones de navegación */}
+      <div className="step-navigation">
+        <button
+          className="btn-secondary"
+          onClick={onBack}
+        >
+          ← Volver
+        </button>
+
+        {selectedMethod === 'mercadopago' && orderData && (
+          <div className="mercadopago-container">
+            <MercadoPagoButton orderData={orderData} />
+          </div>
+        )}
+
+        {selectedMethod === 'whatsapp' && (
+          <div className="whatsapp-container">
+            <button
+              className="whatsapp-btn"
+              onClick={handleWhatsAppContact}
+            >
+              <span>Contactar por WhatsApp</span>
+            </button>
+          </div>
+        )}
+
+        {selectedMethod && selectedMethod !== 'mercadopago' && selectedMethod !== 'whatsapp' && (
+          <button
+            className="btn-primary"
+            onClick={handleNext}
+          >
+            Continuar →
+          </button>
+        )}
+      </div>
+
+    </div>
+  );
+};
 
 export default PaymentMethod;

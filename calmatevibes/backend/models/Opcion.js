@@ -4,7 +4,7 @@ const OpcionSchema = new mongoose.Schema({
   categoria: {
     type: String,
     required: true,
-    enum: ['mates', 'bombillas', 'combos']
+    trim: true
   },
   campo: {
     type: String,

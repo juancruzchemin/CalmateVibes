@@ -109,7 +109,34 @@ exports.createCategoria = async (req, res) => {
       });
     }
 
-    const categoria = await Categoria.create(req.body);
+    console.log('🆕 Creando nueva categoría:', JSON.stringify(req.body, null, 2));
+    console.log('🖼️ Campo imagen recibido:', req.body.imagen);
+
+    // Verificar si ya existe una categoría activa con el mismo nombre (comparación insensible a mayúsculas)
+    const nombreOriginal = req.body.nombre.trim();
+    const nombreNormalizado = nombreOriginal.toLowerCase();
+    
+    const categoriaExistente = await Categoria.findOne({
+      nombre: { $regex: new RegExp(`^${nombreNormalizado}$`, 'i') },
+      activa: true
+    });
+
+    if (categoriaExistente) {
+      return res.status(400).json({
+        success: false,
+        message: `Ya existe una categoría activa con el nombre '${nombreOriginal}'`
+      });
+    }
+
+    // Crear la nueva categoría manteniendo el formato original
+    const categoriaData = {
+      ...req.body,
+      nombre: nombreOriginal // Mantener formato original
+    };
+
+    const categoria = await Categoria.create(categoriaData);
+
+    console.log('✅ Categoría creada exitosamente:', categoria);
 
     res.status(201).json({
       success: true,
@@ -147,19 +174,63 @@ exports.updateCategoria = async (req, res) => {
       });
     }
 
+    console.log('🔄 Actualizando categoría ID:', req.params.id);
+    console.log('📥 Datos recibidos:', JSON.stringify(req.body, null, 2));
+    console.log('🖼️ Campo imagen en actualización:', req.body.imagen);
+
+    // Verificar que la categoría existe antes de actualizar
+    const categoriaExistente = await Categoria.findById(req.params.id);
+    if (!categoriaExistente) {
+      return res.status(404).json({
+        success: false,
+        message: 'Categoría no encontrada'
+      });
+    }
+
+    console.log('Categoría existente antes de actualizar:', categoriaExistente);
+
+    // Si se está actualizando el nombre, verificar duplicados
+    let datosActualizacion = { ...req.body };
+    
+    if (req.body.nombre) {
+      const nombreOriginal = req.body.nombre.trim();
+      const nombreNormalizado = nombreOriginal.toLowerCase();
+      
+      // Solo verificar duplicados si el nombre cambió
+      if (nombreNormalizado !== categoriaExistente.nombre.toLowerCase()) {
+        const duplicado = await Categoria.findOne({
+          nombre: { $regex: new RegExp(`^${nombreNormalizado}$`, 'i') },
+          activa: true,
+          _id: { $ne: req.params.id }
+        });
+
+        if (duplicado) {
+          return res.status(400).json({
+            success: false,
+            message: `Ya existe una categoría activa con el nombre '${nombreOriginal}'`
+          });
+        }
+      }
+      
+      // Mantener formato original
+      datosActualizacion.nombre = nombreOriginal;
+    }
+
     const categoria = await Categoria.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      datosActualizacion,
       {
         new: true,
         runValidators: true
       }
     );
 
+    console.log('Categoría después de actualizar:', categoria);
+
     if (!categoria) {
       return res.status(404).json({
         success: false,
-        message: 'Categoría no encontrada'
+        message: 'Categoría no encontrada después de la actualización'
       });
     }
 
@@ -190,38 +261,83 @@ exports.updateCategoria = async (req, res) => {
 // @access  Private
 exports.deleteCategoria = async (req, res) => {
   try {
+    console.log('🗑️ === DELETE CATEGORIA INICIADO ===');
+    console.log('🆔 ID recibido:', req.params.id);
+    console.log('👤 Usuario autenticado:', req.usuario ? req.usuario._id : 'No usuario');
+    console.log('🔑 Rol del usuario:', req.usuario ? req.usuario.rol : 'No rol');
+    console.log('📋 Headers recibidos:', req.headers);
+    
+    // Verificar que tenemos un ID válido
+    if (!req.params.id) {
+      console.log('❌ ID no proporcionado');
+      return res.status(400).json({
+        success: false,
+        message: 'ID de categoría requerido'
+      });
+    }
+    
     const categoria = await Categoria.findById(req.params.id);
     
     if (!categoria) {
+      console.log('❌ Categoría no encontrada con ID:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'Categoría no encontrada'
       });
     }
 
+    console.log('✅ Categoría encontrada:', {
+      id: categoria._id,
+      nombre: categoria.nombre,
+      descripcion: categoria.descripcion,
+      activa: categoria.activa
+    });
+
+    // Verificar si ya está inactiva
+    if (!categoria.activa) {
+      console.log('⚠️ La categoría ya está inactiva');
+      return res.status(400).json({
+        success: false,
+        message: 'La categoría ya está eliminada'
+      });
+    }
+
     // Verificar si hay productos en esta categoría
+    console.log('🔍 Verificando productos en la categoría...');
     const productosEnCategoria = await Producto.countDocuments({
       categoria: categoria.nombre,
       activo: true
     });
 
+    console.log('📊 Productos activos en la categoría:', productosEnCategoria);
+
     if (productosEnCategoria > 0) {
+      console.log('❌ No se puede eliminar - tiene productos activos');
       return res.status(400).json({
         success: false,
         message: `No se puede eliminar la categoría porque tiene ${productosEnCategoria} producto(s) activo(s)`
       });
     }
 
-    // Soft delete
-    categoria.activa = false;
-    await categoria.save();
+    // Hard delete - Eliminación completa
+    console.log('🔄 Realizando eliminación completa...');
+    const categoriaEliminada = await Categoria.findByIdAndDelete(req.params.id);
+    
+    console.log('✅ Categoría eliminada completamente:', {
+      id: categoriaEliminada._id,
+      nombre: categoriaEliminada.nombre
+    });
 
+    console.log('🗑️ === DELETE CATEGORIA COMPLETADO EXITOSAMENTE ===');
+    
     res.json({
       success: true,
-      message: 'Categoría eliminada exitosamente'
+      message: 'Categoría eliminada exitosamente',
+      data: categoriaEliminada
     });
   } catch (error) {
-    console.error('Error en deleteCategoria:', error);
+    console.error('💥 Error en deleteCategoria:', error);
+    console.error('💥 Stack trace:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Error al eliminar categoría',

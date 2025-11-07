@@ -128,7 +128,7 @@
   align-items: flex-end;
 }
 
-.estado-badge, .tipo-badge {
+.pedido-sestado-badge, .tipo-badge {
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -142,7 +142,7 @@
 
 /* Estado Badges */
 .badge-pendiente {
-  background: #fff3cd;
+  background: #f3e4b4;
   color: #856404;
   border: 1px solid #ffeaa7;
 }
@@ -382,7 +382,7 @@
     word-break: break-all;
   }
   
-  .estado-badge, .tipo-badge {
+  .pedido-sestado-badge, .tipo-badge {
     font-size: 0.7rem;
     padding: 0.2rem 0.6rem;
   }

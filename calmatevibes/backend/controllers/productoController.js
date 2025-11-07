@@ -1,4 +1,5 @@
 const Producto = require('../models/Producto');
+const Categoria = require('../models/Categoria');
 const { validationResult } = require('express-validator');
 
 // @desc    Obtener todos los productos con filtros avanzados
@@ -13,9 +14,9 @@ exports.getProductos = async (req, res) => {
     // Construir filtros
     const filtros = {};
     
-    // Filtro por categoría
+    // Filtro por categoría (case-insensitive)
     if (req.query.categoria) {
-      filtros.categoria = req.query.categoria;
+      filtros.categoria = { $regex: new RegExp(`^${req.query.categoria}$`, 'i') };
     }
     
     // Filtro por estado activo (por defecto solo activos)
@@ -175,6 +176,8 @@ exports.getProducto = async (req, res) => {
 // @access  Private
 exports.createProducto = async (req, res) => {
   try {
+    console.log('📥 [Backend] Datos recibidos en createProducto:', JSON.stringify(req.body, null, 2));
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -197,7 +200,106 @@ exports.createProducto = async (req, res) => {
       });
     }
 
-    const producto = await Producto.create(req.body);
+    // Preparar datos del producto
+    const productoData = { ...req.body };
+
+    // Validar categoría dinámicamente contra la base de datos
+    if (productoData.categoria) {
+      console.log('🔍 [Backend] Validando categoría:', productoData.categoria);
+      
+      const categoriaValida = await Categoria.findOne({
+        $or: [
+          { nombre: { $regex: `^${productoData.categoria}$`, $options: 'i' } },
+          { key: productoData.categoria }
+        ],
+        activa: true
+      });
+      
+      console.log('🔍 [Backend] Categoría encontrada:', categoriaValida);
+      
+      if (!categoriaValida) {
+        console.error('❌ [Backend] Categoría no válida:', productoData.categoria);
+        
+        // Mostrar categorías disponibles para debugging
+        const categoriasDisponibles = await Categoria.find({ activa: true }, { nombre: 1, key: 1 });
+        console.log('📋 [Backend] Categorías disponibles:', categoriasDisponibles);
+        
+        return res.status(400).json({
+          success: false,
+          message: 'Categoría inválida. La categoría no existe en la base de datos'
+        });
+      }
+    }
+
+    // Procesar imágenes - convertir strings a objetos si es necesario
+    console.log('📷 [Backend] Procesando imágenes recibidas:', {
+      cantidad: productoData.imagenes?.length || 0,
+      tipos: productoData.imagenes?.map(img => ({
+        esString: typeof img === 'string',
+        esObjeto: typeof img === 'object',
+        tipoContenido: typeof img === 'string' ? (
+          img.startsWith('data:image/') ? 'base64' : 
+          img.startsWith('http') ? 'url' : 
+          img.startsWith('blob:') ? 'blob' : 'unknown'
+        ) : 'object'
+      }))
+    });
+    
+    if (productoData.imagenes && Array.isArray(productoData.imagenes)) {
+      productoData.imagenes = productoData.imagenes.map(img => {
+        if (typeof img === 'string') {
+          // Descartar blob URLs
+          if (img.startsWith('blob:')) {
+            console.log('⚠️ [Backend] Descartando blob URL');
+            return null;
+          }
+          
+          // Crear objeto con estructura correcta para base64 o URLs
+          return {
+            url: img,
+            alt: productoData.nombre || 'Imagen del producto'
+          };
+        }
+        return img;
+      }).filter(img => img && img.url); // Filtrar imágenes nulas o vacías
+    } else {
+      productoData.imagenes = [];
+    }
+    
+    console.log('📷 [Backend] Imágenes procesadas:', {
+      cantidad: productoData.imagenes.length,
+      imagenes: productoData.imagenes.map(img => ({
+        tipoUrl: img.url?.startsWith('data:image/') ? 'base64' : 'url',
+        tamaño: img.url?.length || 0
+      }))
+    });
+
+    // Asignar características por defecto según la categoría
+    if (productoData.categoria === 'mates' && !productoData.caracteristicasMates) {
+      productoData.caracteristicasMates = {
+        forma: 'Imperial',
+        tipo: 'Calabaza', 
+        anchoSuperior: 'Medio',
+        anchoInferior: 'Medio',
+        virola: 'No',
+        guarda: 'No',
+        revestimiento: 'No',
+        curados: 'No',
+        terminacion: 'Brillante',
+        grabado: 'No'
+      };
+    }
+
+    if (productoData.categoria === 'bombillas' && !productoData.caracteristicasBombillas) {
+      productoData.caracteristicasBombillas = {
+        forma: 'Recta',
+        tipoMaterial: 'Acero inoxidable',
+        tamaño: 'Mediana',
+        centimetros: 20
+      };
+    }
+
+    const producto = await Producto.create(productoData);
 
     // Poblar referencias si es un combo
     if (producto.categoria === 'combos') {
@@ -418,6 +520,168 @@ exports.actualizarStock = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al actualizar stock',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Obtener productos por categoría
+// @route   GET /api/productos/categoria/:categoria
+// @access  Public
+exports.getProductosByCategoria = async (req, res) => {
+  try {
+    const { categoria } = req.params;
+    console.log('📂 [Backend] Buscando productos por categoría:', categoria);
+    
+    // Buscar la categoría primero para obtener información adicional
+    const categoriaDoc = await Categoria.findOne({
+      $or: [
+        { slug: categoria },
+        { nombre: { $regex: `^${categoria}$`, $options: 'i' } },
+        { key: categoria }
+      ]
+    });
+    
+    console.log('🔍 [Backend] Categoría encontrada:', categoriaDoc);
+    
+    // Buscar productos usando case-insensitive regex
+    const productos = await Producto.find({ 
+      categoria: { $regex: `^${categoria}$`, $options: 'i' },
+      activo: true 
+    }).sort({ nombre: 1 });
+
+    console.log(`✅ [Backend] Encontrados ${productos.length} productos para categoría "${categoria}"`);
+
+    res.json({
+      success: true,
+      productos: productos,
+      data: productos, // Mantener ambos para compatibilidad
+      categoria: categoriaDoc,
+      total: productos.length
+    });
+  } catch (error) {
+    console.error('❌ [Backend] Error en getProductosByCategoria:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener productos por categoría',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Buscar productos
+// @route   GET /api/productos/search
+// @access  Public
+exports.searchProductos = async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parámetro de búsqueda requerido'
+      });
+    }
+
+    const productos = await Producto.find({
+      $and: [
+        { activo: true },
+        {
+          $or: [
+            { nombre: { $regex: q, $options: 'i' } },
+            { descripcion: { $regex: q, $options: 'i' } },
+            { tags: { $in: [new RegExp(q, 'i')] } }
+          ]
+        }
+      ]
+    }).sort({ nombre: 1 });
+
+    res.json({
+      success: true,
+      data: productos,
+      total: productos.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error en la búsqueda',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Obtener productos destacados
+// @route   GET /api/productos/destacados
+// @access  Public
+exports.getProductosDestacados = async (req, res) => {
+  try {
+    const productos = await Producto.find({ 
+      activo: true,
+      destacado: true 
+    }).sort({ createdAt: -1 }).limit(10);
+
+    res.json({
+      success: true,
+      data: productos,
+      total: productos.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener productos destacados',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Obtener resumen del inventario
+// @route   GET /api/productos/resumen
+// @access  Private/Admin
+exports.getInventarioResumen = async (req, res) => {
+  try {
+    const stats = await Producto.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalProductos: { $sum: 1 },
+          productosActivos: { 
+            $sum: { $cond: [{ $eq: ['$activo', true] }, 1, 0] } 
+          },
+          stockTotal: { $sum: '$stock' },
+          valorInventario: { 
+            $sum: { $multiply: ['$stock', '$precioCompra'] } 
+          },
+          valorVenta: { 
+            $sum: { $multiply: ['$stock', '$precioVenta'] } 
+          },
+          precioPromedio: { $avg: '$precioVenta' }
+        }
+      }
+    ]);
+
+    const categorias = await Producto.aggregate([
+      { $match: { activo: true } },
+      {
+        $group: {
+          _id: '$categoria',
+          cantidad: { $sum: 1 },
+          stock: { $sum: '$stock' }
+        }
+      },
+      { $sort: { cantidad: -1 } }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        estadisticas: stats[0] || {},
+        categorias: categorias
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener resumen del inventario',
       error: error.message
     });
   }

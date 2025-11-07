@@ -5,7 +5,6 @@
   overflow-x: hidden;
   position: relative;
   margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -16,41 +15,63 @@
   }
 }
 
-/* Header del catálogo */
-.catalog-header {
-  width: 100%;
-  margin: 0;
-  padding: 2rem 1rem 0;
+/* ========== HERO SECTION - MISMO ESTILO QUE CUIDADOS ========== */
+.catalog-hero-section {
+  text-align: center;
+  padding: 1rem;
+  background-color: #52691a;
+  color: white;
+  margin-bottom: 2rem;
+  position: relative;
 }
 
-.catalog-header-content {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 2rem;
-}
-
-.catalog-index-section {
-  order: 1;
-}
-
-.catalog-title-section {
-  flex: 1;
-  order: 2;
-}
-
-.catalog-title-section .catalogo-title {
-  font-size: 2.5rem;
+.catalog-hero-title {
+  font-size: 3.2rem;
   font-weight: 700;
-  color: #000;
-  margin: 0 0 0.5rem 0;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  color: white;
 }
 
-.catalog-title-section .catalogo-description {
-  font-size: 1.1rem;
-  color: #666;
-  margin: 0;
+.catalog-hero-subtitle {
+  font-size: 1.3rem;
+  opacity: 0.95;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
   line-height: 1.5;
+  color: white;
+}
+
+/* Botón de filtros en el hero */
+.mobile-filters-in-hero {
+  display: none;
+  margin-top: 1rem;
+}
+
+.mobile-filters-button-in-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.mobile-filters-button-in-hero:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.mobile-filters-button-in-hero svg {
+  opacity: 0.9;
 }
 
 .catalog-index-section .catalogo-indice {
@@ -188,9 +209,6 @@
 
 /* Extra Large Devices (1400px+) */
 @media (min-width: 1400px) {
-  .catalog-header {
-    padding: 3rem 3rem 0;
-  }
   
   .catalog-page {
     padding: 0 3rem 3rem;
@@ -209,13 +227,8 @@
 /* Large Devices (1200px - 1399px) */
 @media (max-width: 1399px) and (min-width: 1200px) {
   .catalog-header {
-    padding: 2.5rem 2.5rem 0;
-  }
-  
-  .catalog-page {
-    padding: 0 2.5rem 2.5rem;
-  }
-  
+    padding: 2.5rem 1.2rem 0;
+  }  
   .catalog-page .catalogo-items {
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1.8rem;
@@ -645,7 +658,7 @@ html {
 /* ========== ORIENTACIÓN DE DISPOSITIVO ========== */
 @media (orientation: landscape) and (max-height: 600px) {
   .catalog-header {
-    padding-top: 1rem;
+    padding-top: 4rem;
     padding-bottom: 0.5rem;
   }
   
@@ -731,8 +744,16 @@ html {
 
 /* Breadcrumb section */
 .breadcrumb-section {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 1rem 2rem 0;
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .breadcrumb-section {
+    padding: 1rem 1rem 0;
+  }
 }
 
 /* ========== SISTEMA DE ANIMACIONES MEJORADO ========== */
@@ -866,15 +887,6 @@ html {
   }
 }
 
-/* Mejoras de espaciado adaptativo */
-.catalog-header {
-  padding: clamp(1rem, 3vw, 3rem) clamp(0.75rem, 4vw, 3rem) 0;
-}
-
-.catalog-page {
-  padding: 0 clamp(0.75rem, 4vw, 3rem) clamp(0.75rem, 3vw, 3rem);
-}
-
 /* Grid adaptativo mejorado */
 .catalog-page .catalogo-items {
   grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
@@ -898,47 +910,39 @@ html {
   flex: 1;
 }
 
-.mobile-filters-in-title {
-  display: none;
-}
 
-.mobile-filters-button-in-title {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 4px 12px;
-  background: #52691a;
-  color: white;
-  border: none;
-  border-radius: 16px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 4px rgba(82, 105, 26, 0.2);
-  height: 28px;
-  white-space: nowrap;
-  min-width: 80px;
-  justify-content: center;
-}
 
-.mobile-filters-button-in-title:hover {
-  background: #405216;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(82, 105, 26, 0.3);
-}
-
-.mobile-filters-button-in-title:active {
-  transform: translateY(0);
-}
-
-.mobile-filters-button-in-title svg {
-  flex-shrink: 0;
-}
-
-/* Mostrar solo en móvil */
+/* ========== RESPONSIVE - MISMO PATRÓN QUE CUIDADOS ========== */
 @media (max-width: 768px) {
-  .mobile-filters-in-title {
+  .mobile-filters-in-hero {
     display: block;
+  }
+  
+  .catalog-hero-section {
+    padding: 2rem 1rem;
+  }
+  
+  .catalog-hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .catalog-hero-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .mobile-filters-button-in-hero {
+    padding: 0.65rem 1.2rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .catalog-hero-title {
+    font-size: 2rem;
+  }
+  
+  .catalog-hero-subtitle {
+    font-size: 1rem;
   }
 }

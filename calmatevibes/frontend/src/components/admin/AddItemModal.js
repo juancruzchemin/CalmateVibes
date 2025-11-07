@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SimpleItemForm from './SimpleItemForm';
 import '../styles/AddItemModal.css';
 
+
 function AddItemModal({ 
   isOpen, 
   onClose, 
@@ -44,11 +45,34 @@ function AddItemModal({
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const newImages = files.map((file) => URL.createObjectURL(file));
-    setFormData((prevData) => ({
-      ...prevData,
-      imagenes: [...prevData.imagenes, ...newImages],
-    }));
+    
+    console.log('📷 [handleImageUpload] Procesando archivos:', files.length);
+    
+    files.forEach((file) => {
+      // Validar tamaño del archivo (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`La imagen ${file.name} es demasiado grande. Máximo 5MB.`);
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target.result;
+        console.log('📷 [handleImageUpload] Imagen convertida a base64:', file.name, 'Tamaño:', base64String.length);
+        
+        setFormData((prevData) => ({
+          ...prevData,
+          imagenes: [...prevData.imagenes, base64String],
+        }));
+      };
+      
+      reader.onerror = () => {
+        console.error('❌ Error al leer el archivo:', file.name);
+        alert(`Error al procesar la imagen ${file.name}`);
+      };
+      
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleImageRemove = (index) => {
@@ -61,33 +85,134 @@ function AddItemModal({
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    console.log('🚀 Iniciando handleSubmit - FormData completo:', formData);
+    console.log('🚀 AttributeData completo:', attributeData);
+    console.log('🚀 Catalogos disponibles:', catalogos);
+    
+    // Validar datos básicos
+    if (!formData.nombre?.trim()) {
+      alert('El nombre del producto es obligatorio');
+      return;
+    }
+
+    if (!formData.precioVenta || parseFloat(formData.precioVenta) <= 0) {
+      alert('El precio debe ser mayor a 0');
+      return;
+    }
+    
+    // Validar categoría
+    if (!formData.catalogo) {
+      alert('Debe seleccionar una categoría');
+      return;
+    }
+
+    // Validar que la categoría sea válida (usar categorías dinámicas)
+    const validCategories = catalogos.map(cat => cat.nombre);
+    console.log('🧪 DEBUG - Categorías válidas:', validCategories);
+    console.log('🧪 DEBUG - Categoría seleccionada:', formData.catalogo);
+    
+    if (!validCategories.includes(formData.catalogo)) {
+      alert(`Categoría inválida. Debe ser una de: ${validCategories.join(', ')}`);
+      return;
+    }
+
+    console.log('✅ Validación frontend pasada - enviando datos:', {
+      categoria: formData.catalogo,
+      nombre: formData.nombre,
+      precio: formData.precioVenta
+    });
+    
+    // Validar y procesar imágenes
+    const imagenesValidas = formData.imagenes.filter(img => 
+      img && typeof img === 'string' && (img.startsWith('data:image/') || img.startsWith('http'))
+    );
+    
+    console.log('📷 [handleSubmit] Imágenes procesadas:', {
+      total: formData.imagenes.length,
+      validas: imagenesValidas.length,
+      imagenes: imagenesValidas.map(img => ({
+        tipo: img.startsWith('data:image/') ? 'base64' : 'url',
+        tamaño: img.length
+      }))
+    });
+    
     let completeData = {
       ...formData,
-      ...attributeData
+      ...attributeData,
+      imagenes: imagenesValidas,
+      categoria: formData.catalogo, // Asegurar que ambos campos tengan el mismo valor
+      precio: formData.precioVenta // Mapear precioVenta a precio
     };
     
-    // Si es un combo, enriquecer la descripción con información de los productos
-    if (formData.catalogo === 'combos' && attributeData.selectedMate && attributeData.selectedBombilla) {
-      const mate = catalogos.find(cat => cat.id === 'mates')?.items?.find(item => item.id === attributeData.selectedMate);
-      const bombilla = catalogos.find(cat => cat.id === 'bombillas')?.items?.find(item => item.id === attributeData.selectedBombilla);
-      const quantity = attributeData.comboQuantity || 1;
+    // Si es un combo, enriquecer la descripción con información de los productos seleccionados
+    if (formData.catalogo?.toLowerCase() === 'combos') {
+      const selectedProducts = [];
+      const comboDetails = {};
       
-      if (mate && bombilla) {
-        const comboDescription = `${completeData.descripcion}${completeData.descripcion ? '\n\n' : ''}Incluye:\n- ${quantity}x ${mate.nombre}\n- ${quantity}x ${bombilla.nombre}`;
+      // Recopilar todos los productos seleccionados usando las nuevas claves dinámicas
+      catalogos.forEach(categoria => {
+        if (categoria.nombre?.toLowerCase() !== 'combos') {
+          const categoryKey = `combo_${categoria.nombre}`;
+          const selectedId = attributeData[categoryKey];
+          if (selectedId && categoria.items) {
+            const product = categoria.items.find(item => item.id === selectedId);
+            if (product) {
+              selectedProducts.push({
+                ...product,
+                categoria: categoria.nombre
+              });
+              comboDetails[categoria.nombre] = {
+                id: product.id,
+                nombre: product.nombre,
+                precio: product.precioVenta
+              };
+            }
+          }
+        }
+      });
+      
+      if (selectedProducts.length >= 2) {
+        const quantity = attributeData.comboQuantity || 1;
+        const productList = selectedProducts.map(p => `- ${quantity}x ${p.nombre}`).join('\n');
+        const comboDescription = `${completeData.descripcion}${completeData.descripcion ? '\n\n' : ''}Incluye:\n${productList}`;
+        
         completeData = {
           ...completeData,
           descripcion: comboDescription,
           comboDetails: {
-            mate: { id: mate.id, nombre: mate.nombre, precio: mate.precioVenta },
-            bombilla: { id: bombilla.id, nombre: bombilla.nombre, precio: bombilla.precioVenta },
+            ...comboDetails,
             quantity: quantity
           }
         };
       }
     }
     
-    onSubmit(completeData);
-    onClose();
+    // Verificar tamaño de los datos
+    const dataSize = JSON.stringify(completeData).length;
+    console.log('📊 [handleSubmit] Tamaño de datos:', {
+      tamaño_bytes: dataSize,
+      tamaño_mb: (dataSize / 1024 / 1024).toFixed(2),
+      cantidad_imagenes: imagenesValidas.length,
+      tamaño_imagenes: imagenesValidas.map(img => ({
+        tamaño: img.length,
+        mb: (img.length / 1024 / 1024).toFixed(2)
+      }))
+    });
+    
+    if (dataSize > 16 * 1024 * 1024) { // 16MB límite típico de Express
+      alert('Los datos son demasiado grandes. Intenta con imágenes más pequeñas.');
+      return;
+    }
+    
+    console.log('📤 Enviando datos completos al onSubmit:', completeData);
+    
+    try {
+      onSubmit(completeData);
+      onClose();
+    } catch (error) {
+      console.error('❌ Error en onSubmit:', error);
+      alert('Error al agregar el producto: ' + error.message);
+    }
   };
 
   const handleCatalogChange = (e) => {
@@ -104,7 +229,7 @@ function AddItemModal({
   const getAvailableAttributes = () => {
     if (!formData.catalogo || !catalogos) return {};
     
-    const selectedCatalog = catalogos.find(cat => cat.id === formData.catalogo);
+    const selectedCatalog = catalogos.find(cat => cat.nombre === formData.catalogo);
     if (!selectedCatalog || !selectedCatalog.items || selectedCatalog.items.length === 0) return {};
     
     const attributes = {};
@@ -147,15 +272,31 @@ function AddItemModal({
         [attributeName]: value
       };
       
-      // Si es un combo y se seleccionaron ambos productos, calcular precio sugerido
-      if (formData.catalogo === 'combos' && (attributeName === 'selectedMate' || attributeName === 'selectedBombilla' || attributeName === 'comboQuantity')) {
-        const mate = catalogos.find(cat => cat.id === 'mates')?.items?.find(item => item.id === (attributeName === 'selectedMate' ? value : newData.selectedMate));
-        const bombilla = catalogos.find(cat => cat.id === 'bombillas')?.items?.find(item => item.id === (attributeName === 'selectedBombilla' ? value : newData.selectedBombilla));
-        const quantity = attributeName === 'comboQuantity' ? value : (newData.comboQuantity || 1);
+      // Si es un combo, calcular precio sugerido dinámicamente con nuevas claves
+      if (formData.catalogo?.toLowerCase() === 'combos') {
+        // Obtener todos los productos seleccionados usando las nuevas claves dinámicas
+        const selectedProducts = [];
+        catalogos.forEach(categoria => {
+          if (categoria.nombre?.toLowerCase() !== 'combos') {
+            const categoryKey = `combo_${categoria.nombre}`;
+            const selectedId = attributeName === categoryKey 
+              ? value 
+              : newData[categoryKey];
+            
+            if (selectedId && categoria.items) {
+              const product = categoria.items.find(item => item.id === selectedId);
+              if (product) {
+                selectedProducts.push(product);
+              }
+            }
+          }
+        });
         
-        if (mate && bombilla) {
-          const totalIndividual = (mate.precioVenta + bombilla.precioVenta) * quantity;
-          const suggestedPrice = Math.floor(totalIndividual * 0.9); // 10% descuento
+        // Si hay al menos 2 productos seleccionados, calcular precio
+        if (selectedProducts.length >= 2) {
+          const quantity = attributeName === 'comboQuantity' ? value : (newData.comboQuantity || 1);
+          const totalIndividual = selectedProducts.reduce((sum, product) => sum + (product.precioVenta || 0), 0) * quantity;
+          const suggestedPrice = Math.round(totalIndividual * 0.9 * 100) / 100; // 10% descuento, redondeado a centavos
           
           // Actualizar automáticamente el precio de venta
           setFormData(prevFormData => ({

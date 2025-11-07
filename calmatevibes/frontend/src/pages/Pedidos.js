@@ -7,6 +7,8 @@ import PedidosList from '../components/admin/PedidosList';
 import PedidoDetail from '../components/admin/PedidoDetail';
 import TrackingModal from '../components/admin/TrackingModal';
 import ShippingModal from '../components/admin/ShippingModal';
+import { useAuth } from '../context/AuthContext';
+import pedidoService from '../services/pedidoService';
 import './styles/Pedidos.css';
 
 function Pedidos() {
@@ -17,6 +19,8 @@ function Pedidos() {
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const { token, isAdmin } = useAuth();
 
   // Estados para filtros
   const [filters, setFilters] = useState({
@@ -69,86 +73,59 @@ function Pedidos() {
   const fetchPedidos = async () => {
     try {
       setLoading(true);
-      // Por ahora uso datos mock, después se conecta a la API real
-      const mockPedidos = [
-        {
-          id: 1,
-          numero: 'PED-2024-001',
-          cliente: {
-            nombre: 'Juan Pérez',
-            email: 'juan@email.com',
-            telefono: '+54 11 1234-5678'
-          },
-          productos: [
-            { id: 1, nombre: 'Mate Calabaza Premium', cantidad: 2, precio: 15000 },
-            { id: 2, nombre: 'Bombilla Alpaca', cantidad: 1, precio: 8000 }
-          ],
-          total: 38000,
-          estado: 'pendiente',
-          tipo: 'envio',
-          fechaPedido: '2024-10-01',
-          fechaEntrega: null,
-          direccionEnvio: {
-            calle: 'Av. Corrientes 1234',
-            ciudad: 'Buenos Aires',
-            provincia: 'CABA',
-            codigoPostal: '1043'
-          },
-          tracking: null,
-          notas: 'Cliente solicita entrega por la mañana'
-        },
-        {
-          id: 2,
-          numero: 'PED-2024-002',
-          cliente: {
-            nombre: 'María García',
-            email: 'maria@email.com',
-            telefono: '+54 11 9876-5432'
-          },
-          productos: [
-            { id: 3, nombre: 'Set Mate Completo', cantidad: 1, precio: 25000 }
-          ],
-          total: 25000,
-          estado: 'enviado',
-          tipo: 'envio',
-          fechaPedido: '2024-09-28',
-          fechaEntrega: '2024-10-02',
-          direccionEnvio: {
-            calle: 'San Martín 567',
-            ciudad: 'La Plata',
-            provincia: 'Buenos Aires',
-            codigoPostal: '1900'
-          },
-          tracking: 'AR123456789',
-          notas: ''
-        },
-        {
-          id: 3,
-          numero: 'PED-2024-003',
-          cliente: {
-            nombre: 'Carlos López',
-            email: 'carlos@email.com',
-            telefono: '+54 11 5555-1234'
-          },
-          productos: [
-            { id: 2, nombre: 'Bombilla Alpaca', cantidad: 1, precio: 8000 }
-          ],
-          total: 8000,
-          estado: 'pendiente',
-          tipo: 'devolucion',
-          fechaPedido: '2024-10-01',
-          fechaEntrega: null,
-          direccionEnvio: null,
-          tracking: null,
-          notas: 'Producto llegó defectuoso, solicita cambio'
-        }
-      ];
+      
+      if (!token) {
+        setError('No estás autenticado');
+        return;
+      }
 
-      setPedidos(mockPedidos);
-      setError(null);
+      if (!isAdmin) {
+        setError('No tienes permisos de administrador');
+        return;
+      }
+
+      // Conectar con la API real
+      const response = await pedidoService.obtenerTodosPedidos(token);
+      
+      if (response.success) {
+        // Transformar datos para que coincidan con el formato esperado por los componentes
+        const pedidosTransformados = response.data.map(pedido => ({
+          id: pedido._id,
+          numero: pedido.numeroPedido,
+          cliente: {
+            nombre: `${pedido.usuario.nombre} ${pedido.usuario.apellido}`,
+            email: pedido.usuario.email,
+            telefono: pedido.usuario.telefono || 'No especificado'
+          },
+          productos: pedido.items.map(item => ({
+            id: item.producto,
+            nombre: item.nombre,
+            cantidad: item.cantidad,
+            precio: item.precioUnitario
+          })),
+          total: pedido.total,
+          estado: pedido.estado,
+          tipo: pedido.tipoEntrega || 'envio',
+          fechaPedido: new Date(pedido.fechaPedido).toISOString().split('T')[0],
+          fechaEntrega: pedido.fechaEntrega ? new Date(pedido.fechaEntrega).toISOString().split('T')[0] : null,
+          direccionEnvio: pedido.direccionEnvio ? {
+            calle: `${pedido.direccionEnvio.calle} ${pedido.direccionEnvio.numero}`,
+            ciudad: pedido.direccionEnvio.ciudad,
+            provincia: pedido.direccionEnvio.provincia,
+            codigoPostal: pedido.direccionEnvio.codigoPostal
+          } : null,
+          tracking: pedido.tracking || null,
+          notas: pedido.observaciones || ''
+        }));
+
+        setPedidos(pedidosTransformados);
+        setError(null);
+      } else {
+        setError(response.message || 'Error al cargar los pedidos');
+      }
     } catch (err) {
-      setError('Error al cargar los pedidos');
       console.error('Error fetching pedidos:', err);
+      setError(err.message || 'Error al cargar los pedidos');
     } finally {
       setLoading(false);
     }
@@ -169,15 +146,29 @@ function Pedidos() {
     setSelectedPedido(pedido);
   };
 
-  const handleStatusUpdate = (pedidoId, newStatus) => {
-    setPedidos(prevPedidos =>
-      prevPedidos.map(pedido =>
-        pedido.id === pedidoId ? { ...pedido, estado: newStatus } : pedido
-      )
-    );
-    
-    if (selectedPedido && selectedPedido.id === pedidoId) {
-      setSelectedPedido(prev => ({ ...prev, estado: newStatus }));
+  const handleStatusUpdate = async (pedidoId, newStatus) => {
+    try {
+      if (!token || !isAdmin) {
+        setError('No tienes permisos para actualizar pedidos');
+        return;
+      }
+
+      // Actualizar en el backend
+      await pedidoService.actualizarEstadoPedido(pedidoId, newStatus, token);
+      
+      // Actualizar en el estado local
+      setPedidos(prevPedidos =>
+        prevPedidos.map(pedido =>
+          pedido.id === pedidoId ? { ...pedido, estado: newStatus } : pedido
+        )
+      );
+      
+      if (selectedPedido && selectedPedido.id === pedidoId) {
+        setSelectedPedido(prev => ({ ...prev, estado: newStatus }));
+      }
+    } catch (err) {
+      console.error('Error al actualizar estado:', err);
+      setError(err.message || 'Error al actualizar el estado del pedido');
     }
   };
 

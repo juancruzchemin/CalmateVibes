@@ -1,14 +1,17 @@
 // src/pages/Home.js
-import React from 'react';
+import React, { useContext } from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import Content from '../components/layout/Content';
 import InstagramFeed from '../components/home/InstagramFeed';
+import { CarritoContext } from '../context/CarritoContext.js';
 
 function About() {
+  const { carrito } = useContext(CarritoContext);
+  
   return (
     <>
-      <Header />
+      <Header carrito={carrito} userRole="client" />
        <Content
           title="Seguinos en instagram"
           lead=""

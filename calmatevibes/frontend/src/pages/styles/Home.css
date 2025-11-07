@@ -18,6 +18,34 @@
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header que sigue el scroll en la página Home - específico */
+.home-page .header-main {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.home-page .header-main .header-container {
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+/* Efecto cuando el header está visible después del scroll */
+.home-page .header-main.scrolled .header-container {
+  box-shadow: 0 4px 12px rgba(82, 105, 26, 0.2);
+}
+
+/* Espaciado para compensar el header fijo */
+.home-page .home-container {
+  position: relative;
+  z-index: 2;
 }
 
 /* Contenedor principal responsive */
@@ -261,6 +289,30 @@ html {
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Asegurar que el sidebar funcione correctamente sobre la página Home */
+.home-page .sidebar-drawer {
+  z-index: 9999 !important;
+}
+
+.home-page .sidebar-backdrop {
+  z-index: 9998 !important;
+}
+
+.home-page .sidebar-toggle {
+  z-index: 10000 !important;
+}
+
+/* Prevenir cualquier interferencia de z-index en Home */
+.home-page * {
+  z-index: auto;
+}
+
+.home-page .sidebar-drawer,
+.home-page .sidebar-backdrop,
+.home-page .sidebar-toggle {
+  z-index: revert !important;
 }
 
 .home-page {

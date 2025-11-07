@@ -60,11 +60,15 @@ function SimpleItemForm({
               required
             >
               <option value="">Seleccionar categoría</option>
-              {catalogos.map((catalogo) => (
-                <option key={catalogo.id} value={catalogo.id}>
-                  {catalogo.nombre}
-                </option>
-              ))}
+              {catalogos && catalogos.length > 0 ? (
+                catalogos.map(categoria => (
+                  <option key={categoria.id} value={categoria.nombre}>
+                    {categoria.nombreDisplay || categoria.nombre}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>No hay categorías disponibles</option>
+              )}
             </select>
           </div>
         </div>
@@ -116,43 +120,60 @@ function SimpleItemForm({
         </div>
       </div>
 
-      {/* Configuración específica para Combos */}
-      {formData.catalogo === 'combos' && (
+      {/* Configuración específica para Combos - COMPLETAMENTE DINÁMICO */}
+      {(formData.catalogo === 'combos' || formData.catalogo?.toLowerCase() === 'combos') && (
         <div className="form-section">
           <h3>Productos del Combo</h3>
           <div className="combo-selector">
-            <div className="form-group">
-              <label htmlFor="selectedMate">Mate:</label>
-              <select 
-                id="selectedMate"
-                name="selectedMate"
-                value={attributeData.selectedMate || ''}
-                onChange={(e) => onAttributeChange && onAttributeChange('selectedMate', e.target.value)}
-              >
-                <option value="">Seleccionar mate</option>
-                {catalogos.find(cat => cat.id === 'mates')?.items?.map(mate => (
-                  <option key={mate.id} value={mate.id}>
-                    {mate.nombre} - ${mate.precioVenta}
-                  </option>
-                ))}
-              </select>
-            </div>
             
-            <div className="form-group">
-              <label htmlFor="selectedBombilla">Bombilla:</label>
-              <select 
-                id="selectedBombilla"
-                name="selectedBombilla"
-                value={attributeData.selectedBombilla || ''}
-                onChange={(e) => onAttributeChange && onAttributeChange('selectedBombilla', e.target.value)}
-              >
-                <option value="">Seleccionar bombilla</option>
-                {catalogos.find(cat => cat.id === 'bombillas')?.items?.map(bombilla => (
-                  <option key={bombilla.id} value={bombilla.id}>
-                    {bombilla.nombre} - ${bombilla.precioVenta}
-                  </option>
-                ))}
-              </select>
+            {/* Sistema dinámico de productos para combo */}
+            <div className="combo-products-container">
+              <p className="combo-instructions">
+                Selecciona productos de diferentes categorías para crear tu combo:
+              </p>
+              
+              {/* Renderizar selectores para todas las categorías disponibles (excepto la actual) */}
+              {catalogos && catalogos
+                .filter(categoria => categoria.nombre?.toLowerCase() !== 'combos' && categoria.items && categoria.items.length > 0)
+                .map((categoria) => {
+                  const categoryKey = `combo_${categoria.nombre}`;
+                  const selectedProductId = attributeData[categoryKey];
+                  const selectedProduct = selectedProductId ? categoria.items.find(item => item.id === selectedProductId) : null;
+                  
+                  return (
+                    <div key={categoria.id} className="form-group combo-category-selector">
+                      <label htmlFor={categoryKey} className="combo-category-label">
+                        <span className="category-name">{categoria.nombreDisplay || categoria.nombre}:</span>
+                        {selectedProduct && (
+                          <span className="selected-indicator"> ✓ {selectedProduct.nombre}</span>
+                        )}
+                      </label>
+                      <select 
+                        id={categoryKey}
+                        name={categoryKey}
+                        value={selectedProductId || ''}
+                        onChange={(e) => onAttributeChange && onAttributeChange(categoryKey, e.target.value)}
+                        className="combo-product-select"
+                      >
+                        <option value="">-- No incluir {categoria.nombre.toLowerCase()} --</option>
+                        {categoria.items.map(item => (
+                          <option key={item.id} value={item.id}>
+                            {item.nombre} - ${item.precioVenta ? item.precioVenta.toFixed(2) : '0.00'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })
+              }
+              
+              {/* Mensaje si no hay categorías disponibles */}
+              {(!catalogos || catalogos.filter(cat => cat.nombre?.toLowerCase() !== 'combos' && cat.items?.length > 0).length === 0) && (
+                <div className="no-categories-message">
+                  <p>⚠️ No hay categorías con productos disponibles para crear combos.</p>
+                  <p>Primero crea productos en otras categorías.</p>
+                </div>
+              )}
             </div>
             
             <div className="form-group">
@@ -168,36 +189,130 @@ function SimpleItemForm({
               />
             </div>
             
-            {/* Mostrar precio sugerido */}
-            {attributeData.selectedMate && attributeData.selectedBombilla && (
-              <div className="combo-price-suggestion">
-                <h4>Precio Sugerido del Combo:</h4>
-                <p className="suggested-price">
-                  ${(() => {
-                    const mate = catalogos.find(cat => cat.id === 'mates')?.items?.find(item => item.id === attributeData.selectedMate);
-                    const bombilla = catalogos.find(cat => cat.id === 'bombillas')?.items?.find(item => item.id === attributeData.selectedBombilla);
-                    const quantity = attributeData.comboQuantity || 1;
-                    if (mate && bombilla) {
-                      const totalIndividual = (mate.precioVenta + bombilla.precioVenta) * quantity;
-                      const discountedPrice = Math.floor(totalIndividual * 0.9); // 10% descuento
-                      return discountedPrice;
+            {/* Selector de cantidad para el combo */}
+            <div className="form-group">
+              <label htmlFor="comboQuantity">Cantidad de cada producto en el combo:</label>
+              <input
+                type="number"
+                id="comboQuantity"
+                name="comboQuantity"
+                min="1"
+                max="10"
+                value={attributeData.comboQuantity || 1}
+                onChange={(e) => onAttributeChange && onAttributeChange('comboQuantity', parseInt(e.target.value) || 1)}
+                placeholder="1"
+                className="combo-quantity-input"
+              />
+              <small className="quantity-help">Cantidad de cada producto que incluirá el combo</small>
+            </div>
+
+            {/* Mostrar resumen y precio sugerido dinámico */}
+            {(() => {
+              // Obtener todos los productos seleccionados usando las claves dinámicas
+              const selectedProducts = [];
+              const totalProducts = catalogos ? catalogos
+                .filter(categoria => categoria.nombre?.toLowerCase() !== 'combos' && categoria.items?.length > 0)
+                .length : 0;
+              
+              catalogos && catalogos.forEach(categoria => {
+                if (categoria.nombre?.toLowerCase() !== 'combos') {
+                  const categoryKey = `combo_${categoria.nombre}`;
+                  const selectedId = attributeData[categoryKey];
+                  if (selectedId && categoria.items) {
+                    const product = categoria.items.find(item => item.id === selectedId);
+                    if (product) {
+                      selectedProducts.push({
+                        ...product,
+                        categoria: categoria.nombre,
+                        categoryKey: categoryKey
+                      });
                     }
-                    return 0;
-                  })()}
-                </p>
-                <small>
-                  Precio individual: ${(() => {
-                    const mate = catalogos.find(cat => cat.id === 'mates')?.items?.find(item => item.id === attributeData.selectedMate);
-                    const bombilla = catalogos.find(cat => cat.id === 'bombillas')?.items?.find(item => item.id === attributeData.selectedBombilla);
-                    const quantity = attributeData.comboQuantity || 1;
-                    if (mate && bombilla) {
-                      return (mate.precioVenta + bombilla.precioVenta) * quantity;
-                    }
-                    return 0;
-                  })()} (10% descuento aplicado)
-                </small>
-              </div>
-            )}
+                  }
+                }
+              });
+              
+              // Mostrar información si hay productos seleccionados
+              if (selectedProducts.length === 0) {
+                return (
+                  <div className="combo-status">
+                    <p className="combo-help">
+                      💡 Selecciona al menos 2 productos de diferentes categorías para crear el combo
+                    </p>
+                  </div>
+                );
+              }
+
+              // Mostrar resumen de productos seleccionados
+              return (
+                <div className="combo-summary">
+                  <h4>Resumen del Combo ({selectedProducts.length} producto{selectedProducts.length !== 1 ? 's' : ''} seleccionado{selectedProducts.length !== 1 ? 's' : ''}):</h4>
+                  
+                  <div className="selected-products-list">
+                    {selectedProducts.map((product, index) => (
+                      <div key={index} className="selected-product-item">
+                        <span className="product-info">
+                          <strong>{product.nombre}</strong>
+                          <span className="category-badge">({product.categoria})</span>
+                        </span>
+                        <span className="product-price">${product.precioVenta ? product.precioVenta.toFixed(2) : '0.00'}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Mostrar precio sugerido si hay al menos 2 productos */}
+                  {selectedProducts.length >= 2 && (
+                    <div className="combo-price-calculation">
+                      <div className="price-breakdown">
+                        <div className="individual-total">
+                          <span>Precio individual total:</span>
+                          <span>${(() => {
+                            const quantity = attributeData.comboQuantity || 1;
+                            const total = selectedProducts.reduce((sum, product) => sum + (product.precioVenta || 0), 0) * quantity;
+                            return total.toFixed(2);
+                          })()}</span>
+                        </div>
+                        <div className="combo-discount">
+                          <span>Descuento del combo (10%):</span>
+                          <span className="discount-amount">-${(() => {
+                            const quantity = attributeData.comboQuantity || 1;
+                            const total = selectedProducts.reduce((sum, product) => sum + (product.precioVenta || 0), 0) * quantity;
+                            const discount = total * 0.1;
+                            return discount.toFixed(2);
+                          })()}</span>
+                        </div>
+                        <div className="suggested-price-final">
+                          <span><strong>Precio sugerido del combo:</strong></span>
+                          <span className="final-price"><strong>${(() => {
+                            const quantity = attributeData.comboQuantity || 1;
+                            const total = selectedProducts.reduce((sum, product) => sum + (product.precioVenta || 0), 0) * quantity;
+                            const finalPrice = total * 0.9;
+                            return finalPrice.toFixed(2);
+                          })()}</strong></span>
+                        </div>
+                      </div>
+                      
+                      <div className="combo-savings">
+                        <small>💰 ¡Ahorro de ${(() => {
+                          const quantity = attributeData.comboQuantity || 1;
+                          const total = selectedProducts.reduce((sum, product) => sum + (product.precioVenta || 0), 0) * quantity;
+                          const savings = total * 0.1;
+                          return savings.toFixed(2);
+                        })()} por combo!</small>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sugerencia si solo hay 1 producto seleccionado */}
+                  {selectedProducts.length === 1 && (
+                    <div className="combo-suggestion">
+                      <p className="single-product-tip">
+                        ℹ️ Selecciona al menos un producto más para activar el descuento del combo
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -267,11 +382,11 @@ function SimpleItemForm({
         )}
       </div>
 
-      <div className="form-actions">
-        <button type="button" onClick={onPreview} className="preview-btn">
+      <div className="form-actions-item-form">
+        <button type="button" onClick={onPreview} className="preview-btn-item-form">
           Vista Previa
         </button>
-        <button type="submit" className="submit-btn">
+        <button type="submit" className="submit-btn-item-form">
           Agregar Producto
         </button>
       </div>

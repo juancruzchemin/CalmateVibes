@@ -39,7 +39,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, userRole }) {
         <button className="sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú">&times;</button>
         <ul className="sidebar-menu">
           <li className="sidebar-menu-item"><Link to="/" onClick={handleLinkClick}>Inicio</Link></li>
-          <li className="sidebar-menu-item"><Link to="/catalog/mates" onClick={handleLinkClick}>Catálogo</Link></li>
+          <li className="sidebar-menu-item"><Link to="/tienda" onClick={handleLinkClick}>Catálogo</Link></li>
           <li className="sidebar-menu-item"><Link to="/care" onClick={handleLinkClick}>Cuidados</Link></li>
           <li className="sidebar-menu-item"><Link to="/contact" onClick={handleLinkClick}>Contacto</Link></li>
           <li className="sidebar-menu-item"><Link to="/mis-pedidos" onClick={handleLinkClick}>Mis Pedidos</Link></li>

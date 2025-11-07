@@ -10,10 +10,7 @@ const ProductoSchema = new mongoose.Schema({
   categoria: {
     type: String,
     required: [true, 'La categoría es obligatoria'],
-    enum: {
-      values: ['mates', 'bombillas', 'combos'],
-      message: 'Categoría debe ser: mates, bombillas o combos'
-    }
+    trim: true
   },
   
   // Características específicas para MATES
@@ -21,27 +18,27 @@ const ProductoSchema = new mongoose.Schema({
     forma: {
       type: String,
       enum: ['Camionero', 'Imperial', 'Torpedo'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'Imperial' : undefined; }
     },
     tipo: {
       type: String,
       enum: ['Calabaza', 'Algarrobo'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'Calabaza' : undefined; }
     },
     anchoSuperior: {
       type: String,
       enum: ['Ancho', 'Medio', 'Angosto'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'Medio' : undefined; }
     },
     anchoInferior: {
       type: String,
       enum: ['Ancho', 'Medio', 'Angosto'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'Medio' : undefined; }
     },
     virola: {
       type: String,
       enum: ['Si', 'No'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'No' : undefined; }
     },
     tiposDeVirola: {
       type: String,
@@ -53,7 +50,7 @@ const ProductoSchema = new mongoose.Schema({
     guarda: {
       type: String,
       enum: ['Si', 'No'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'No' : undefined; }
     },
     tiposDeGuarda: {
       type: String,
@@ -65,7 +62,7 @@ const ProductoSchema = new mongoose.Schema({
     revestimiento: {
       type: String,
       enum: ['Si', 'No'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'No' : undefined; }
     },
     tiposDeRevestimientos: {
       type: String,
@@ -77,7 +74,7 @@ const ProductoSchema = new mongoose.Schema({
     curados: {
       type: String,
       enum: ['Si', 'No'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'No' : undefined; }
     },
     tiposDeCurados: {
       type: String,
@@ -93,7 +90,7 @@ const ProductoSchema = new mongoose.Schema({
     grabado: {
       type: String,
       enum: ['Si', 'No'],
-      required: function() { return this.categoria === 'mates'; }
+      default: function() { return this.categoria === 'mates' ? 'No' : undefined; }
     },
     descripcionDelGrabado: {
       type: String,
@@ -112,18 +109,18 @@ const ProductoSchema = new mongoose.Schema({
   caracteristicasBombillas: {
     forma: {
       type: String,
-      required: function() { return this.categoria === 'bombillas'; },
-      trim: true
+      trim: true,
+      default: function() { return this.categoria === 'bombillas' ? 'Recta' : undefined; }
     },
     tipoMaterial: {
       type: String,
-      required: function() { return this.categoria === 'bombillas'; },
-      trim: true
+      trim: true,
+      default: function() { return this.categoria === 'bombillas' ? 'Acero inoxidable' : undefined; }
     },
     tamaño: {
       type: String,
       enum: ['Larga', 'Mediana', 'Pequeña'],
-      required: function() { return this.categoria === 'bombillas'; }
+      default: function() { return this.categoria === 'bombillas' ? 'Mediana' : undefined; }
     },
     centimetros: {
       type: Number,
@@ -137,10 +134,9 @@ const ProductoSchema = new mongoose.Schema({
     mate: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Producto',
-      required: function() { return this.categoria === 'combos'; },
       validate: {
         validator: async function(mateId) {
-          if (this.categoria !== 'combos') return true;
+          if (this.categoria !== 'combos' || !mateId) return true;
           const mate = await mongoose.model('Producto').findById(mateId);
           return mate && mate.categoria === 'mates' && mate.activo;
         },
@@ -150,10 +146,9 @@ const ProductoSchema = new mongoose.Schema({
     bombilla: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Producto',
-      required: function() { return this.categoria === 'combos'; },
       validate: {
         validator: async function(bombillaId) {
-          if (this.categoria !== 'combos') return true;
+          if (this.categoria !== 'combos' || !bombillaId) return true;
           const bombilla = await mongoose.model('Producto').findById(bombillaId);
           return bombilla && bombilla.categoria === 'bombillas' && bombilla.activo;
         },
@@ -231,14 +226,28 @@ ProductoSchema.virtual('caracteristicas').get(function() {
   }
 });
 
-// Middleware para generar slug
-ProductoSchema.pre('save', function(next) {
+// Middleware para generar slug único
+ProductoSchema.pre('save', async function(next) {
   if (this.isModified('nombre')) {
-    this.slug = this.nombre
+    const baseSlug = this.nombre
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
+    
+    let slug = baseSlug;
+    let counter = 1;
+    
+    // Verificar si el slug ya existe (excluyendo el documento actual si es una actualización)
+    while (await this.constructor.findOne({ 
+      slug: slug, 
+      _id: { $ne: this._id } 
+    })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    
+    this.slug = slug;
   }
   next();
 });

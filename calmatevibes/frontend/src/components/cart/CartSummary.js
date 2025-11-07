@@ -13,8 +13,36 @@ function CartSummary({
     showShipping = false,
     currentStep = 'cart'
 }) {
-    const formatPrice = (price) => `$${price.toLocaleString()}`;
-    const finalTotal = showShipping ? total + envio : subtotal;
+    const formatPrice = (price) => {
+        const numPrice = Number(price) || 0;
+        return `$${numPrice.toLocaleString()}`;
+    };
+    
+    // Calcular el subtotal desde los items como backup
+    const calculatedSubtotal = items.reduce((sum, item) => {
+        const precio = item.precioUnitario || item.precioVenta || 0;
+        const cantidad = item.cantidad || 1;
+        return sum + (precio * cantidad);
+    }, 0);
+    
+    // Usar el subtotal pasado como prop o el calculado como fallback
+    const realSubtotal = subtotal || calculatedSubtotal;
+    
+    // Debug: mostrar los valores en consola
+    console.log('🧮 CartSummary Debug:', {
+        items: items.length,
+        subtotalProp: subtotal,
+        calculatedSubtotal,
+        realSubtotal,
+        envio,
+        showShipping,
+        finalTotal: showShipping ? realSubtotal + envio : realSubtotal
+    });
+    
+    // Calcular el total correctamente
+    // Si showShipping es true: subtotal + envío
+    // Si showShipping es false: solo subtotal  
+    const finalTotal = showShipping ? realSubtotal + envio : realSubtotal;
 
     return (
         <div className="cart-summary">
@@ -41,7 +69,7 @@ function CartSummary({
                                         {item.cantidad}x {item.nombre}
                                     </span>
                                     <span className="product-price">
-                                        {formatPrice(item.precio * item.cantidad)}
+                                        {formatPrice((item.precioUnitario || item.precioVenta || 0) * (item.cantidad || 1))}
                                     </span>
                                 </div>
                             ))}
@@ -50,7 +78,7 @@ function CartSummary({
 
                     <div className="summary-line">
                         <span className="summary-label">Subtotal</span>
-                        <span className="summary-value">{formatPrice(subtotal)}</span>
+                        <span className="summary-value">{formatPrice(realSubtotal)}</span>
                     </div>
 
                     {showShipping && (
@@ -65,7 +93,7 @@ function CartSummary({
                             {envio === 0 && (
                                 <div className="free-shipping-note">
                                     <i className="bi bi-truck"></i>
-                                    <span>¡Envío gratis en compras superiores a $5,000!</span>
+                                    <span>¡Envío gratis en compras superiores a $35,000!</span>
                                 </div>
                             )}
                         </>

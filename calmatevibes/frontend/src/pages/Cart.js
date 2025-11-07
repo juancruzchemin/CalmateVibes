@@ -1,6 +1,6 @@
 // src/pages/Cart.js
-import React, { useContext, useState, useEffect } from 'react';
-import { CarritoContext } from '../context/CarritoContext.js';
+import React, { useState, useEffect } from 'react';
+import { useCarrito } from '../context/CarritoContext.js';
 import Header from '../components/layout/Header.js';
 import Footer from '../components/layout/Footer.js';
 import CartItems from '../components/cart/CartItems.js';
@@ -11,7 +11,7 @@ import PaymentMethod from '../components/cart/PaymentMethod.js';
 import '../components/cart/styles/Cart.css';
 
 function Cart() {
-    const { carrito, eliminarDelCarrito, vaciarCarrito, actualizarCantidad } = useContext(CarritoContext);
+    const { carrito, eliminarDelCarrito, vaciarCarrito, actualizarCantidad, loading, error, total: carritoTotal } = useCarrito();
     const [currentStep, setCurrentStep] = useState('cart'); // cart, checkout, payment
     const [customerInfo, setCustomerInfo] = useState({
         nombre: '',
@@ -24,7 +24,11 @@ function Cart() {
     const [paymentMethod, setPaymentMethod] = useState('mercadopago'); // mercadopago, whatsapp
     const [isLoading, setIsLoading] = useState(false);
 
-    const total = carrito.reduce((sum, item) => sum + item.precioVenta * item.cantidad, 0);
+    // Usar el total del contexto o calcularlo como fallback
+    const total = carritoTotal || carrito.reduce((sum, item) => {
+        const precio = item.precioUnitario || item.precioVenta || item.precio || 0;
+        return sum + precio * item.cantidad;
+    }, 0);
     const envio = total > 5000 ? 0 : 800; // Envío gratis en compras mayores a $5000
     const totalConEnvio = total + envio;
     const showShipping = currentStep !== 'cart'; // Mostrar shipping en pasos avanzados
@@ -69,30 +73,52 @@ function Cart() {
     const handleMercadoPagoPayment = async () => {
         setIsLoading(true);
         try {
+            // Importar el servicio de pagos dinámicamente
+            const { crearPreferenciaPago, formatearDatosOrden, testearConexion } = await import('../services/pagoService');
+            
+            // Primero probar conectividad
+            console.log('🧪 Probando conexión con backend...');
+            await testearConexion();
+            console.log('✅ Conexión con backend confirmada');
+            
             const order = generateOrder();
 
-            // Aquí integraremos MercadoPago
-            const response = await fetch('/api/create-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            // Formatear datos para MercadoPago
+            const datosOrden = formatearDatosOrden(
+                {
                     items: order.items,
-                    customer: order.customer,
-                    total: order.total
-                })
-            });
+                    subtotal: order.subtotal,
+                    total: order.total,
+                    id: `carrito_${Date.now()}`
+                },
+                order.customer,
+                {
+                    costo: order.envio || 0,
+                    descuento: order.descuento || 0,
+                    metodo: 'standard'
+                }
+            );
 
-            const data = await response.json();
+            console.log('🛒 Procesando pago con MercadoPago:', datosOrden);
 
-            if (data.preferenceId) {
+            // Crear preferencia de pago
+            const response = await crearPreferenciaPago(datosOrden);
+
+            if (response.success && response.initPoint) {
+                console.log('✅ Redirigiendo a MercadoPago:', response.initPoint);
+                
+                // Guardar referencia del pago para seguimiento
+                localStorage.setItem('mp_external_reference', response.externalReference);
+                localStorage.setItem('mp_preference_id', response.preferenceId);
+                
                 // Redirigir a MercadoPago
-                window.location.href = data.initPoint;
+                window.location.href = response.initPoint;
+            } else {
+                throw new Error(response.message || 'No se pudo crear la preferencia de pago');
             }
         } catch (error) {
-            console.error('Error al procesar el pago:', error);
-            alert('Error al procesar el pago. Intenta nuevamente.');
+            console.error('❌ Error al procesar el pago:', error);
+            alert(`Error al procesar el pago: ${error.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -132,6 +158,41 @@ function Cart() {
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [currentStep]);
+
+    // Mostrar loading mientras se carga el carrito
+    if (loading && carrito.length === 0) {
+        return (
+            <div className="cart-page-wrapper">
+                <Header />
+                <div className="cart-content-container">
+                    <div className="cart-loading">
+                        <div className="loading-spinner"></div>
+                        <p>Cargando tu carrito...</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    // Mostrar error si hay algún problema
+    if (error) {
+        return (
+            <div className="cart-page-wrapper">
+                <Header />
+                <div className="cart-content-container">
+                    <div className="cart-error">
+                        <h2>Error al cargar el carrito</h2>
+                        <p>{error}</p>
+                        <button onClick={() => window.location.reload()} className="retry-button">
+                            Intentar nuevamente
+                        </button>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="cart-page-wrapper">
@@ -291,13 +352,6 @@ function Cart() {
                                 <div className="mobile-continue-section">
                                     {currentStep === 'cart' && (
                                         <>
-                                            {/* Total móvil - solo para paso del carrito */}
-                                            {/* <div className="mobile-cart-total">
-                                                <div className="cart-total-display">
-                                                    <span className="total-label">Total:</span>
-                                                    <span className="total-amount">{`$${total.toLocaleString()}`}</span>
-                                                </div>
-                                            </div> */}
                                             <button
                                                 className="btn-continue-checkout"
                                                 onClick={handleProceedToCheckout}

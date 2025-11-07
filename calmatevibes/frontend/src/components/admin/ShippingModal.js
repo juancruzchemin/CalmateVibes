@@ -22,24 +22,6 @@ function ShippingModal({ pedido, onClose, onCreateShipping }) {
       costo: 2500
     },
     { 
-      value: 'oca', 
-      label: 'OCA',
-      tiempoEstimado: '2-4 días hábiles',
-      costo: 3200
-    },
-    { 
-      value: 'andreani', 
-      label: 'Andreani',
-      tiempoEstimado: '1-3 días hábiles',
-      costo: 3800
-    },
-    { 
-      value: 'mercado-envios', 
-      label: 'Mercado Envíos',
-      tiempoEstimado: '2-5 días hábiles',
-      costo: 2800
-    },
-    { 
       value: 'express', 
       label: 'Envío Express',
       tiempoEstimado: '24-48 horas',

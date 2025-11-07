@@ -1,31 +1,32 @@
 const express = require('express');
 const router = express.Router();
+const {
+  getProductos,
+  getProducto,
+  createProducto,
+  updateProducto,
+  deleteProducto,
+  actualizarStock,
+  getProductosByCategoria,
+  searchProductos,
+  getProductosDestacados,
+  getInventarioResumen
+} = require('../controllers/productoController');
 
-// GET - Obtener todos los productos
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Endpoint de productos funcionando',
-    data: []
-  });
-});
+const { protect, admin } = require('../middleware/auth');
 
-// GET - Obtener producto por ID
-router.get('/:id', (req, res) => {
-  res.json({
-    success: true,
-    message: `Producto con ID: ${req.params.id}`,
-    data: {}
-  });
-});
+// Rutas públicas (deben ir antes de las rutas con parámetros)
+router.get('/search', searchProductos);
+router.get('/destacados', getProductosDestacados);
+router.get('/categoria/:categoria', getProductosByCategoria);
+router.get('/', getProductos);
+router.get('/:id', getProducto);
 
-// POST - Crear producto
-router.post('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Producto creado',
-    data: req.body
-  });
-});
+// Rutas protegidas (solo admin)
+router.get('/resumen', protect, admin, getInventarioResumen);
+router.post('/', protect, admin, createProducto);
+router.put('/:id', protect, admin, updateProducto);
+router.put('/:id/stock', protect, admin, actualizarStock);
+router.delete('/:id', protect, admin, deleteProducto);
 
 module.exports = router;

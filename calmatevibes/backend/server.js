@@ -13,34 +13,25 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
 }));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Middleware de logging para desarrollo
-if (process.env.NODE_ENV === 'development') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
-    next();
-  });
-}
 
-// Rutas básicas (sin multer por ahora)
+// Rutas de la API
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/productos', require('./routes/productos'));
 app.use('/api/categorias', require('./routes/categorias'));
-
-// Ruta de prueba
-app.get('/api/test', (req, res) => {
-  res.json({
-    success: true,
-    message: '🚀 Backend de CalmateVibes funcionando correctamente',
-    timestamp: new Date().toISOString(),
-    database: 'MongoDB conectado ✅'
-  });
-});
+app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/pedidos', require('./routes/pedidos'));
+app.use('/api/carritos', require('./routes/carritos'));
+app.use('/api/envios', require('./routes/envios'));
+app.use('/api/pagos', require('./routes/pagos')); // Nueva ruta para MercadoPago
 
 // Manejo de errores 404
 app.use('*', (req, res) => {

@@ -25,7 +25,7 @@ function Content({
     >
       <div className="content-hero-inner">
         <div className="content-hero-content">
-          <div className="display-5" style={{ color: titleColor }}>{title}</div>
+          <h2 className="display-5" style={{ color: titleColor }}>{title}</h2>
           <div className="lead" style={{ color: textColor }}>{lead}</div>
           {children}
           {buttonText && buttonLink && (

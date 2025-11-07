@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import './styles/MisPedidos.css';
 
 function MisPedidos() {
+  const { user, getAuthHeaders, isAuthenticated } = useAuth();
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,83 +13,84 @@ function MisPedidos() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchMisPedidos();
-  }, []);
+    if (isAuthenticated && user) {
+      fetchMisPedidos();
+    }
+  }, [isAuthenticated, user]);
 
   const fetchMisPedidos = async () => {
     try {
       setLoading(true);
-      // Por ahora uso datos mock, después se conecta a la API real
-      // Aquí se obtendría los pedidos del usuario logueado
-      const mockPedidos = [
-        {
-          id: 1,
-          numero: 'PED-2024-001',
-          fecha: '2024-09-25',
-          estado: 'entregado',
-          total: 15000,
-          productos: [
-            { id: 1, nombre: 'Mate Imperial', cantidad: 1, precio: 12000, imagen: '/mate-imperial.jpg' },
-            { id: 2, nombre: 'Bombilla Alpaca', cantidad: 1, precio: 3000, imagen: '/bombilla-alpaca.jpg' }
-          ],
-          direccionEnvio: {
-            calle: 'Av. Corrientes 1234',
-            ciudad: 'Buenos Aires',
-            provincia: 'CABA',
-            codigoPostal: '1043'
-          },
-          tracking: 'AR987654321',
-          fechaEntrega: '2024-09-28',
-          metodoPago: 'Tarjeta de Crédito',
-          envio: 2000
-        },
-        {
-          id: 2,
-          numero: 'PED-2024-002',
-          fecha: '2024-10-01',
-          estado: 'enviado',
-          total: 25000,
-          productos: [
-            { id: 3, nombre: 'Set Mate Completo', cantidad: 1, precio: 22000, imagen: '/set-completo.jpg' }
-          ],
-          direccionEnvio: {
-            calle: 'San Martín 567',
-            ciudad: 'La Plata',
-            provincia: 'Buenos Aires',
-            codigoPostal: '1900'
-          },
-          tracking: 'AR123456789',
-          fechaEntregaEstimada: '2024-10-05',
-          metodoPago: 'Transferencia Bancaria',
-          envio: 3000
-        },
-        {
-          id: 3,
-          numero: 'PED-2024-003',
-          fecha: '2024-10-02',
-          estado: 'procesando',
-          total: 8000,
-          productos: [
-            { id: 4, nombre: 'Yerba Premium', cantidad: 2, precio: 4000, imagen: '/yerba-premium.jpg' }
-          ],
-          direccionEnvio: {
-            calle: 'Belgrano 890',
-            ciudad: 'Córdoba',
-            provincia: 'Córdoba',
-            codigoPostal: '5000'
-          },
-          tracking: null,
-          fechaEntregaEstimada: '2024-10-08',
-          metodoPago: 'MercadoPago',
-          envio: 0
-        }
-      ];
-
-      setPedidos(mockPedidos);
       setError(null);
+
+      // Llamada a la API para obtener los pedidos del usuario logueado
+      const response = await fetch('http://localhost:5001/api/pedidos/mis-pedidos', {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Usuario no tiene pedidos
+          setPedidos([]);
+          return;
+        }
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transformar los datos de la API al formato que espera el componente
+        const pedidosFormateados = data.data.map(pedido => ({
+          id: pedido._id,
+          numero: pedido.numeroPedido,
+          fecha: pedido.fechaPedido,
+          estado: pedido.estado,
+          total: pedido.total,
+          productos: pedido.items.map(item => ({
+            id: item.producto._id || item.producto,
+            nombre: item.nombre || item.producto?.nombre || 'Producto',
+            cantidad: item.cantidad,
+            precio: item.precioUnitario,
+            imagen: item.producto?.imagenes?.[0]?.url || item.imagen || '/placeholder.svg'
+          })),
+          direccionEnvio: pedido.datosContacto?.direccion ? {
+            calle: pedido.datosContacto.direccion.calle,
+            ciudad: pedido.datosContacto.direccion.ciudad,
+            provincia: pedido.datosContacto.direccion.provincia,
+            codigoPostal: pedido.datosContacto.direccion.codigoPostal
+          } : null,
+          tracking: pedido.envio?.numeroTracking || null,
+          fechaEntrega: pedido.fechaEntrega || null,
+          fechaEntregaEstimada: pedido.fechaEntregaEstimada || null,
+          metodoPago: pedido.metodoPago?.tipo ? 
+            (pedido.metodoPago.tipo === 'tarjeta' ? 'Tarjeta de Crédito' :
+             pedido.metodoPago.tipo === 'transferencia' ? 'Transferencia Bancaria' :
+             pedido.metodoPago.tipo === 'mercadopago' ? 'MercadoPago' :
+             pedido.metodoPago.tipo === 'efectivo' ? 'Efectivo' : 'Método de Pago'
+            ) : 'No especificado',
+          envio: pedido.envio?.costo || 0
+        }));
+
+        setPedidos(pedidosFormateados);
+      } else {
+        throw new Error(data.message || 'Error al cargar los pedidos');
+      }
+
     } catch (err) {
-      setError('Error al cargar tus pedidos');
       console.error('Error fetching pedidos:', err);
+      
+      if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
+        setError('Error de conexión. Verifica tu conexión a internet.');
+      } else {
+        setError(err.message || 'Error al cargar tus pedidos');
+      }
+      
+      // En caso de error, mostrar datos mock para desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        setPedidos([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -135,14 +138,15 @@ function MisPedidos() {
     )
   );
 
-  if (loading) {
+  // Mostrar loading mientras se verifica la autenticación o se cargan los pedidos
+  if (loading || !isAuthenticated) {
     return (
       <div className="mis-pedidos-wrapper">
         <Header />
         <div className="mis-pedidos-container">
           <div className="loading-spinner">
             <div className="spinner"></div>
-            <p>Cargando tus pedidos...</p>
+            <p>{!isAuthenticated ? 'Verificando autenticación...' : 'Cargando tus pedidos...'}</p>
           </div>
         </div>
         <Footer />
@@ -174,11 +178,23 @@ function MisPedidos() {
       
       <div className="mis-pedidos-container">
         <div className="mis-pedidos-header">
-          <h1>
-            <i className="bi bi-bag-check"></i>
-            Mis Pedidos
-          </h1>
-          <p>Aquí puedes ver el estado y detalles de todos tus pedidos</p>
+          <div className="header-content">
+            <div className="header-text">
+              <h1>
+                Mis Pedidos
+              </h1>
+              <p>Aquí puedes ver el estado y detalles de todos tus pedidos, {user?.nombre}</p>
+            </div>
+            <button 
+              className="refresh-btn"
+              onClick={fetchMisPedidos}
+              disabled={loading}
+              title="Actualizar pedidos"
+            >
+              <i className="bi bi-arrow-clockwise"></i>
+              {loading ? 'Cargando...' : 'Actualizar'}
+            </button>
+          </div>
         </div>
 
         {/* Barra de búsqueda */}
@@ -198,11 +214,33 @@ function MisPedidos() {
         {filteredPedidos.length === 0 ? (
           <div className="no-pedidos">
             <i className="bi bi-bag-x"></i>
-            <h3>No tienes pedidos aún</h3>
-            <p>¡Explora nuestros productos y realiza tu primer pedido!</p>
-            <a href="/catalogo" className="btn-primary">
-              Ver Catálogo
-            </a>
+            <h3>
+              {searchTerm 
+                ? `No se encontraron pedidos que coincidan con "${searchTerm}"` 
+                : pedidos.length === 0 
+                ? `¡Hola ${user?.nombre}! No tienes pedidos aún` 
+                : 'No se encontraron pedidos'
+              }
+            </h3>
+            <p>
+              {searchTerm 
+                ? 'Intenta con otros términos de búsqueda' 
+                : '¡Explora nuestros productos y realiza tu primer pedido!'
+              }
+            </p>
+            {!searchTerm && (
+              <a href="/catalog" className="btn-primary">
+                Ver Catálogo
+              </a>
+            )}
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="btn-secondary"
+              >
+                Limpiar Búsqueda
+              </button>
+            )}
           </div>
         ) : (
           <div className="pedidos-grid">

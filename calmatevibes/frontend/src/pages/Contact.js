@@ -1,5 +1,5 @@
 // src/pages/Contact.js
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -8,9 +8,12 @@ import Footer from '../components/layout/Footer.js';
 import Content from '../components/layout/Content.js';
 import InstagramFeed from '../components/home/InstagramFeed.js';
 import WhatsappButton from '../components/shared/WhatsappButton.js';
+import { CarritoContext } from '../context/CarritoContext.js';
 import './styles/Contact.css';
 
 function Contact() {
+  const { carrito } = useContext(CarritoContext);
+  
   useEffect(() => {
     AOS.init({ 
       duration: 400, 
@@ -23,7 +26,7 @@ function Contact() {
 
   return (
     <div className="contact-page-wrapper">
-      <Header />
+      <Header carrito={carrito} userRole="client" />
       
       {/* Hero Section */}
       <div className="contact-hero-section">
@@ -70,7 +73,7 @@ function Contact() {
             <div className="contact-info-grid">
               <div className="contact-info-item">
                 <i className="bi bi-envelope-fill"></i>
-                <span>info@calmatevibes.com</span>
+                <span>calmate834@gmail.com</span>
               </div>
               <div className="contact-info-item">
                 <i className="bi bi-telephone-fill"></i>
@@ -78,7 +81,7 @@ function Contact() {
               </div>
               <div className="contact-info-item">
                 <i className="bi bi-geo-alt-fill"></i>
-                <span>Puerto Madryn, Chubut</span>
+                <span>Trelew, Chubut</span>
               </div>
             </div>
           </Content>

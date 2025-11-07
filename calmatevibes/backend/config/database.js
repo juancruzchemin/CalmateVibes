@@ -2,12 +2,12 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    // Elegir URI según el entorno
-    const mongoURI = process.env.NODE_ENV === 'production' 
-      ? process.env.MONGODB_URI_CLOUD 
-      : process.env.MONGODB_URI;
+    // TEMPORAL: Usar local primero mientras solucionamos Atlas
+    const mongoURI = process.env.MONGODB_URI_CLOUD || process.env.MONGODB_URI  ;
 
-    console.log(`🔄 Conectando a MongoDB (${process.env.NODE_ENV})...`);
+    const isAtlas = mongoURI.includes('mongodb+srv');
+    console.log(`🔄 Conectando a MongoDB ${isAtlas ? '☁️ Atlas (Nube)' : '💻 Local'} (${process.env.NODE_ENV})...`);
+    console.log(`🔗 URI: ${mongoURI.substring(0, 30)}...`);
     
     const conn = await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
@@ -16,6 +16,7 @@ const connectDB = async () => {
 
     console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
     console.log(`📊 Base de datos: ${conn.connection.name}`);
+    console.log(`🌐 Tipo: ${isAtlas ? '🚀 MongoDB Atlas (Nube)' : '💻 MongoDB Local'}`);
     
     // Event listeners para debugging
     mongoose.connection.on('error', (err) => {
@@ -29,12 +30,14 @@ const connectDB = async () => {
   } catch (error) {
     console.error('❌ Error conectando a MongoDB:', error.message);
     
+    
     // Si es desarrollo local y falla, dar instrucciones
     if (process.env.NODE_ENV === 'development') {
       console.log('\n📋 Para solucionar:');
-      console.log('1. Instala MongoDB: https://www.mongodb.com/try/download/community');
-      console.log('2. Ejecuta: mongod');
-      console.log('3. O usa MongoDB Atlas y actualiza MONGODB_URI_CLOUD\n');
+      console.log('1. Verifica MONGODB_URI_CLOUD en .env');
+      console.log('2. Asegúrate de que la IP esté permitida en Atlas');
+      console.log('3. O instala MongoDB local: https://www.mongodb.com/try/download/community');
+      console.log('4. Y ejecuta: mongod\n');
     }
     
     process.exit(1);

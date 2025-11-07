@@ -6,7 +6,7 @@ import Ordenador from './Ordenador.js';
 import Notification from '../ui/Notification.js';
 import CategorySelector from './CategorySelector.js';
 import MobileFilters from './MobileFilters.js';
-import { CarritoContext } from '../../context/CarritoContext.js';
+import { useCarrito } from '../../context/CarritoContext.js';
 import '../styles/Catalog.css';
 
 function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onItemsChange }) {
@@ -19,7 +19,7 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false); // Estado para el sidebar móvil
   const itemsPerPage = 6;
   const navigate = useNavigate();
-  const { agregarAlCarrito } = useContext(CarritoContext);
+  const { agregarAlCarrito } = useCarrito();
 
   useEffect(() => {
     const itemsToShow = filteredItems.length > 0 ? filteredItems : catalogo.items;
@@ -52,12 +52,23 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
     }));
   };
 
-  const handleAgregarAlCarrito = (item) => {
-    const cantidad = cantidades[item.id];
+  const handleAgregarAlCarrito = async (item) => {
+    const cantidad = cantidades[item.id] || 1;
     if (cantidad > 0) {
-      agregarAlCarrito({ ...item, cantidad });
-      setNotificationMessage(`¡${item.nombre} agregado al carrito!`);
-      setShowNotification(true);
+      try {
+        const resultado = await agregarAlCarrito({ ...item, cantidad });
+        if (resultado.success) {
+          setNotificationMessage(`¡${item.nombre} agregado al carrito!`);
+          setShowNotification(true);
+        } else {
+          setNotificationMessage(`Error: ${resultado.error || 'No se pudo agregar al carrito'}`);
+          setShowNotification(true);
+        }
+      } catch (error) {
+        console.error('Error agregando al carrito:', error);
+        setNotificationMessage('Error al agregar al carrito');
+        setShowNotification(true);
+      }
     }
   };
 
@@ -71,71 +82,109 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
 
   return (
     <div className="catalogo">
-      {/* Controles para desktop */}
-      <div className="catalogo-controls desktop-controls">
-        <Filtros items={catalogo.items} onFilter={setItems} />
-        <div className="controls-row">
-          <CategorySelector currentCategory={catalogo.nombre} />
-          <Ordenador items={items} onSort={setItems} />
-        </div>
-      </div>
-
-      {/* Botón para abrir filtros en móvil - solo si no está oculto */}
-      {!hideFiltersButton && (
+      {/* Solo mostrar controles si hay productos en la categoría */}
+      {catalogo.items.length > 0 && (
         <>
-          <div className="mobile-filters-trigger">
-            <button 
-              className="mobile-filters-button"
-              onClick={() => setIsMobileFiltersOpen(true)}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M4 6H20M4 12H16M4 18H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              <span className="button-text-full">Filtros y Ordenar</span>
-              <span className="button-text-short">Filtros</span>
-            </button>
+          {/* Controles para desktop */}
+          <div className="catalogo-controls desktop-controls">
+            <Filtros items={catalogo.items} onFilter={setItems} />
+            <div className="controls-row">
+              <CategorySelector currentCategory={catalogo.nombre} />
+              <Ordenador items={items} onSort={setItems} />
+            </div>
           </div>
 
-          {/* Sidebar móvil */}
-          <MobileFilters
-            isOpen={isMobileFiltersOpen}
-            onClose={() => setIsMobileFiltersOpen(false)}
-            catalogoItems={catalogo.items}
-            currentItems={items}
-            currentCategory={catalogo.nombre}
-            onFilter={onItemsChange || setItems}
-            onSort={onItemsChange || setItems}
-          />
+          {/* Botón para abrir filtros en móvil - solo si no está oculto */}
+          {!hideFiltersButton && (
+            <>
+              <div className="mobile-filters-trigger">
+                <button 
+                  className="mobile-filters-button"
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 6H20M4 12H16M4 18H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <span className="button-text-full">Filtros y Ordenar</span>
+                  <span className="button-text-short">Filtros</span>
+                </button>
+              </div>
+
+              {/* Sidebar móvil */}
+              <MobileFilters
+                isOpen={isMobileFiltersOpen}
+                onClose={() => setIsMobileFiltersOpen(false)}
+                catalogoItems={catalogo.items}
+                currentItems={items}
+                currentCategory={catalogo.nombre}
+                onFilter={onItemsChange || setItems}
+                onSort={onItemsChange || setItems}
+              />
+            </>
+          )}
         </>
       )}
 
       <div className="catalogo-items">
-        {currentItems.map((item, idx) => (
-          <div
-            className="catalogo-item"
-            key={idx}
-            onMouseEnter={() => handleMouseEnter(item.id)}
-            onMouseLeave={handleMouseLeave}
-          >
-            {/* Badge de estado */}
-            {item.estado && (
-              <div className={`product-badge ${item.estado.toLowerCase().replace(' ', '-')}`}>
-                {item.estado}
+        {currentItems.length === 0 ? (
+          // Mensaje amigable cuando no hay productos
+          <div className="empty-catalog-container">
+            <div className="empty-catalog-content">
+              <div className="empty-catalog-icon">
+                <img 
+                  src="/logo-png.png" 
+                  alt="Calmate Vibes Logo" 
+                  className="empty-catalog-logo"
+                />
               </div>
-            )}
-
-            {/* Container de imagen */}
-            <div 
-              className="catalogo-item-image-container"
-              onClick={() => handleItemClick(item.id)}
-            >
-              <img
-                src={hoveredItemId === item.id && item.imagenHover ? item.imagenHover : item.imagen}
-                alt={item.nombre}
-                className="catalogo-item-image"
-                loading="lazy"
-              />
+              <h3 className="empty-catalog-title">
+                ¡Pronto tendremos productos aquí!
+              </h3>
+              <p className="empty-catalog-message">
+                Estamos trabajando en traerte los mejores productos para esta categoría. 
+                Mientras tanto, puedes explorar nuestras otras secciones.
+              </p>
+              <div className="empty-catalog-actions">
+                <button 
+                  className="empty-catalog-btn primary"
+                  onClick={() => navigate('/catalog')}
+                >
+                  Ver todos los productos
+                </button>
+              </div>
             </div>
+          </div>
+        ) : (
+          currentItems.map((item, idx) => (
+            <div
+              className="catalogo-item"
+              key={idx}
+              onMouseEnter={() => handleMouseEnter(item.id)}
+              onMouseLeave={handleMouseLeave}
+            >
+              {/* Badge de estado */}
+              {item.estado && (
+                <div className={`product-badge ${item.estado.toLowerCase().replace(' ', '-')}`}>
+                  {item.estado}
+                </div>
+              )}
+
+              {/* Container de imagen */}
+              <div 
+                className="catalogo-item-image-container"
+                onClick={() => handleItemClick(item.id)}
+              >
+                <img
+                  src={
+                    hoveredItemId === item.id && item.imagenHover 
+                      ? item.imagenHover 
+                      : (item.imagenes?.[0]?.url || item.imagen || '/placeholder.svg')
+                  }
+                  alt={item.nombre}
+                  className="catalogo-item-image"
+                  loading="lazy"
+                />
+              </div>
 
             {/* Información del producto */}
             <div className="catalogo-item-content">
@@ -196,15 +245,19 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
               </div>
             </div>
           </div>
-        ))}
+          ))
+        )}
       </div>
 
-      <Paginador
-        totalItems={items.length}
-        itemsPerPage={itemsPerPage}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-      />
+      {/* Solo mostrar paginador si hay productos */}
+      {currentItems.length > 0 && (
+        <Paginador
+          totalItems={items.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
+      )}
 
       {showNotification && (
         <Notification

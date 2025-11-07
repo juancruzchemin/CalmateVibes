@@ -12,7 +12,7 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
       'entregado': { class: 'badge-entregado', icon: 'bi-check-circle', text: 'Entregado' },
       'cancelado': { class: 'badge-cancelado', icon: 'bi-x-circle', text: 'Cancelado' }
     };
-    
+
     const badge = badges[estado] || badges['pendiente'];
     return (
       <span className={`estado-badge ${badge.class}`}>
@@ -28,7 +28,7 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
       'devolucion': { class: 'tipo-devolucion', icon: 'bi-arrow-return-left', text: 'Devolución' },
       'recambio': { class: 'tipo-recambio', icon: 'bi-arrow-repeat', text: 'Recambio' }
     };
-    
+
     const tipoBadge = tipos[tipo] || tipos['envio'];
     return (
       <span className={`tipo-badge ${tipoBadge.class}`}>
@@ -74,7 +74,7 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
             {getEstadoBadge(pedido.estado)}
           </div>
         </div>
-        
+
         {pedido.tracking && (
           <div className="tracking-info">
             <i className="bi bi-geo-alt-fill"></i>
@@ -84,33 +84,104 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
       </div>
 
       <div className="detail-content">
-        {/* Información del cliente */}
+        {/* Fechas importantes */}
         <div className="detail-section">
           <h3>
-            <i className="bi bi-person-fill"></i>
-            Información del Cliente
+            <i className="bi bi-calendar-fill"></i>
+            Fechas
           </h3>
-          <div className="cliente-details">
+          <div className="fechas-details">
             <div className="info-row">
-              <span className="label">Nombre:</span>
-              <span className="value">{pedido.cliente.nombre}</span>
+              <span className="label">Fecha de pedido:</span>
+              <span className="value">{formatFecha(pedido.fechaPedido)}</span>
             </div>
-            <div className="info-row">
-              <span className="label">Email:</span>
-              <span className="value">
-                <a href={`mailto:${pedido.cliente.email}`}>
-                  {pedido.cliente.email}
-                </a>
-              </span>
+            {pedido.fechaEntrega && (
+              <div className="info-row">
+                <span className="label">Fecha de entrega:</span>
+                <span className="value">{formatFecha(pedido.fechaEntrega)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Acciones */}
+        <div className="detail-actions">
+          <h3>Acciones</h3>
+
+          <div className="actions-grid">
+            {/* Cambiar estado */}
+            <div className="action-group">
+              <label>Cambiar Estado:</label>
+              <select
+                className="status-select"
+                value={pedido.estado}
+                onChange={(e) => handleStatusChange(e.target.value)}
+              >
+                <option value="pendiente">Pendiente</option>
+                <option value="procesando">Procesando</option>
+                <option value="enviado">Enviado</option>
+                <option value="entregado">Entregado</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
             </div>
-            <div className="info-row">
-              <span className="label">Teléfono:</span>
-              <span className="value">
-                <a href={`tel:${pedido.cliente.telefono}`}>
-                  {pedido.cliente.telefono}
-                </a>
-              </span>
-            </div>
+
+            {/* Crear envío */}
+            {canCreateShipping && (
+              <button
+                className="btn btn-primary btn-shipping"
+                onClick={onOpenShipping}
+              >
+                <i className="bi bi-truck"></i>
+                Crear Envío
+              </button>
+            )}
+
+            {/* Agregar tracking */}
+            {canAddTracking && (
+              <button
+                className="btn btn-secondary btn-tracking"
+                onClick={onOpenTracking}
+              >
+                <i className="bi bi-geo-alt"></i>
+                Agregar Tracking
+              </button>
+            )}
+
+            {/* Ver tracking */}
+            {canViewTracking && (
+              <button
+                className="btn btn-info btn-view-tracking"
+                onClick={() => {
+                  // Aquí podrías abrir un modal con más detalles del tracking
+                  // o redirigir a la página del correo
+                  alert(`Tracking: ${pedido.tracking}\n\nEsta funcionalidad se puede expandir para mostrar el estado actual del envío.`);
+                }}
+              >
+                <i className="bi bi-search"></i>
+                Ver Tracking
+              </button>
+            )}
+
+            {/* Imprimir */}
+            <button
+              className="btn btn-outline btn-print"
+              onClick={() => window.print()}
+            >
+              <i className="bi bi-printer"></i>
+              Imprimir
+            </button>
+
+            {/* Contactar cliente */}
+            <button
+              className="btn btn-outline btn-contact"
+              onClick={() => {
+                const mensaje = `Hola ${pedido.cliente.nombre}, te contactamos sobre tu pedido ${pedido.numero}. ¿En qué podemos ayudarte?`;
+                window.open(`https://wa.me/${pedido.cliente.telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
+              }}
+            >
+              <i className="bi bi-whatsapp"></i>
+              Contactar
+            </button> 
           </div>
         </div>
 
@@ -172,26 +243,6 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
           </div>
         )}
 
-        {/* Fechas importantes */}
-        <div className="detail-section">
-          <h3>
-            <i className="bi bi-calendar-fill"></i>
-            Fechas
-          </h3>
-          <div className="fechas-details">
-            <div className="info-row">
-              <span className="label">Fecha de pedido:</span>
-              <span className="value">{formatFecha(pedido.fechaPedido)}</span>
-            </div>
-            {pedido.fechaEntrega && (
-              <div className="info-row">
-                <span className="label">Fecha de entrega:</span>
-                <span className="value">{formatFecha(pedido.fechaEntrega)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Notas */}
         {pedido.notas && (
           <div className="detail-section">
@@ -214,88 +265,40 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
             </div>
           </div>
         )}
-      </div>
 
-      {/* Acciones */}
-      <div className="detail-actions">
-        <h3>Acciones</h3>
-        
-        <div className="actions-grid">
-          {/* Cambiar estado */}
-          <div className="action-group">
-            <label>Cambiar Estado:</label>
-            <select
-              className="status-select"
-              value={pedido.estado}
-              onChange={(e) => handleStatusChange(e.target.value)}
-            >
-              <option value="pendiente">Pendiente</option>
-              <option value="procesando">Procesando</option>
-              <option value="enviado">Enviado</option>
-              <option value="entregado">Entregado</option>
-              <option value="cancelado">Cancelado</option>
-            </select>
+        {/* Información del cliente */}
+        <div className="detail-section">
+          <h3>
+            <i className="bi bi-person-fill"></i>
+            Información del Cliente
+          </h3>
+          <div className="cliente-details">
+            <div className="info-row">
+              <span className="label">Nombre:</span>
+              <span className="value">{pedido.cliente.nombre}</span>
+            </div>
+            <div className="info-row">
+              <span className="label">Email:</span>
+              <span className="value">
+                <a href={`mailto:${pedido.cliente.email}`}>
+                  {pedido.cliente.email}
+                </a>
+              </span>
+            </div>
+            <div className="info-row">
+              <span className="label">Teléfono:</span>
+              <span className="value">
+                <a href={`tel:${pedido.cliente.telefono}`}>
+                  {pedido.cliente.telefono}
+                </a>
+              </span>
+            </div>
           </div>
-
-          {/* Crear envío */}
-          {canCreateShipping && (
-            <button
-              className="btn btn-primary btn-shipping"
-              onClick={onOpenShipping}
-            >
-              <i className="bi bi-truck"></i>
-              Crear Envío
-            </button>
-          )}
-
-          {/* Agregar tracking */}
-          {canAddTracking && (
-            <button
-              className="btn btn-secondary btn-tracking"
-              onClick={onOpenTracking}
-            >
-              <i className="bi bi-geo-alt"></i>
-              Agregar Tracking
-            </button>
-          )}
-
-          {/* Ver tracking */}
-          {canViewTracking && (
-            <button
-              className="btn btn-info btn-view-tracking"
-              onClick={() => {
-                // Aquí podrías abrir un modal con más detalles del tracking
-                // o redirigir a la página del correo
-                alert(`Tracking: ${pedido.tracking}\n\nEsta funcionalidad se puede expandir para mostrar el estado actual del envío.`);
-              }}
-            >
-              <i className="bi bi-search"></i>
-              Ver Tracking
-            </button>
-          )}
-
-          {/* Imprimir */}
-          <button
-            className="btn btn-outline btn-print"
-            onClick={() => window.print()}
-          >
-            <i className="bi bi-printer"></i>
-            Imprimir
-          </button>
-
-          {/* Contactar cliente */}
-          <button
-            className="btn btn-outline btn-contact"
-            onClick={() => {
-              const mensaje = `Hola ${pedido.cliente.nombre}, te contactamos sobre tu pedido ${pedido.numero}. ¿En qué podemos ayudarte?`;
-              window.open(`https://wa.me/${pedido.cliente.telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
-            }}
-          >
-            <i className="bi bi-whatsapp"></i>
-            Contactar
-          </button>
         </div>
+
       </div>
+
+
     </div>
   );
 }

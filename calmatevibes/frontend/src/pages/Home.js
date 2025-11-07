@@ -1,13 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 
 import Header from '../components/layout/Header.js';
 import Footer from '../components/layout/Footer.js';
 import Content from '../components/layout/Content.js';
 import Tienda from '../components/catalog/Tienda.js';
 import InstagramFeed from '../components/home/InstagramFeed.js';
-import FullImage from '../components/features/FullImage.js';
+import HeroSection from '../components/features/Hero section.js';
 import SectionDividerImage from '../components/home/SectionDividerImage.js';
 import CuradosBanner from '../components/home/CuradosBanner.js';
+import { CarritoContext } from '../context/CarritoContext.js';
 
 import './styles/Home.css';
 
@@ -15,6 +16,7 @@ function Home() {
   const sectionRefs = useRef([]);
   // const [imagesLoaded, setImagesLoaded] = useState({}); // Commented out - not currently used
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const { carrito } = useContext(CarritoContext);
 
   useEffect(() => {
     // Detectar preferencia de motion reducido
@@ -26,18 +28,6 @@ function Home() {
     
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-
-  // useEffect(() => {
-  //   // Preload de imágenes críticas
-  //   const criticalImages = ['/javi-mate.jpeg', '/divisor-beige.jpg'];
-  //   criticalImages.forEach(src => {
-  //     const img = new Image();
-  //     img.src = src;
-  //     img.onload = () => {
-  //       setImagesLoaded(prev => ({ ...prev, [src]: true }));
-  //     };
-  //   });
-  // }, []);
 
   useEffect(() => {
     // Sistema personalizado de animación en scroll con delays escalonados
@@ -72,48 +62,9 @@ function Home() {
     };
   }, [prefersReducedMotion]);
 
-  // Componente de imagen con lazy loading y parallax - Commented out (not currently used)
-  /*
-  const LazyImage = ({ src, alt, className, parallax = false }) => {
-    const [loaded, setLoaded] = useState(false);
-    const imgRef = useRef();
-
-    useEffect(() => {
-      if (parallax && imgRef.current && !prefersReducedMotion) {
-        const handleScroll = () => {
-          const rect = imgRef.current.getBoundingClientRect();
-          const scrolled = window.pageYOffset;
-          const rate = scrolled * -0.5;
-          imgRef.current.style.transform = `translateY(${rate}px)`;
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-      }
-    }, [parallax, prefersReducedMotion]);
-
-    return (
-      <div className={`lazy-image-container ${className || ''}`}>
-        {!loaded && <div className="image-placeholder">Cargando...</div>}
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
-          style={{ 
-            opacity: loaded ? 1 : 0,
-            transition: prefersReducedMotion ? 'none' : 'opacity 0.5s ease-in-out'
-          }}
-        />
-      </div>
-    );
-  };
-  */
-
   return (
     <div className="home-page">
-      <Header />
+      <Header carrito={carrito} userRole="client" />
       <div className="home-container">
         <div className="home-inner-container">
           <div 
@@ -122,7 +73,7 @@ function Home() {
             style={{ animationDelay: '0ms' }}
           >
             <div className="hero-section">
-              <FullImage src="/javi-mate.jpeg" alt="Javi disfrutando un mate en la playa - Bienvenido a CalmateVibes" />
+              <HeroSection src="/cal.mate beige.png" alt="Javi disfrutando un mate en la playa - Bienvenido a CalmateVibes" />
             </div>
           </div>
 

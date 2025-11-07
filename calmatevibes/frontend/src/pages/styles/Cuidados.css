@@ -1,12 +1,81 @@
+/* ========== CUIDADOS PAGE - SAME STYLE AS CONTACT ========== */
+
 /* Contenedor principal para mantener el footer abajo */
 .cuidados-page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Asegura que el contenedor ocupe toda la altura de la ventana */
+  min-height: 100vh;
+  padding-top: 1rem;
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  margin-top: 25px;
 }
 
-.cuidados-content {
-  flex: 1; /* Empuja el footer hacia abajo */
-  padding: 2rem;
+/* Mejoras de viewport */
+@supports (height: 100dvh) {
+  .cuidados-page {
+    min-height: 100dvh;
+  }
+}
+
+/* ========== HERO SECTION - MISMO ESTILO QUE CUIDADOS ========== */
+.cuidados-hero-section {
   text-align: center;
+  padding: 1rem;
+  background-color: #52691a;
+  color: white;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.cuidados-hero-title {
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  color: white;
+}
+
+.cuidados-hero-subtitle {
+  font-size: 1.3rem;
+  opacity: 0.95;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+  line-height: 1.5;
+  color: white;
+}
+
+/* Contenido adicional de la página */
+.cuidados-content {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cuidados-hero-section {
+    padding: 2rem 1rem;
+  }
+  
+  .cuidados-hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .cuidados-hero-subtitle {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cuidados-hero-title {
+    font-size: 2rem;
+  }
+  
+  .cuidados-hero-subtitle {
+    font-size: 1.1rem;
+  }
 }

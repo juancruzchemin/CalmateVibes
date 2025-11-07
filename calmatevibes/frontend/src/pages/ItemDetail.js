@@ -4,6 +4,7 @@ import Header from '../components/layout/Header.js';
 import Footer from '../components/layout/Footer.js';
 import Notification from '../components/ui/Notification.js'; // Importa el componente Notification
 import { CarritoContext } from '../context/CarritoContext.js';
+import productoService from '../services/productoService.js';
 import './styles/ItemDetail.css';
 
 function ItemDetail() {
@@ -13,13 +14,20 @@ function ItemDetail() {
   const [activeTab, setActiveTab] = useState('materiales');
   const [cantidad, setCantidad] = useState(1);
   const [showNotification, setShowNotification] = useState(false); // Estado para controlar la notificación
-  const { agregarAlCarrito } = useContext(CarritoContext);
+  const { agregarAlCarrito, carrito } = useContext(CarritoContext);
 
   useEffect(() => {
     const fetchCatalogo = async () => {
       try {
-        const data = await import(`../data/catalogo-${catalogoId}.json`);
-        setCatalogo(data);
+        const response = await productoService.obtenerProductos({ categoria: catalogoId });
+        if (response.success) {
+          const catalogoData = {
+            titulo: catalogoId.charAt(0).toUpperCase() + catalogoId.slice(1),
+            descripcion: `Catálogo de ${catalogoId}`,
+            items: response.data
+          };
+          setCatalogo(catalogoData);
+        }
       } catch (err) {
         console.error('Error al cargar el catálogo:', err);
       } finally {
@@ -53,10 +61,10 @@ function ItemDetail() {
 
   return (
     <div className="item-detail-page">
-      <Header />
+      <Header carrito={carrito} userRole="client" />
       <div className="item-detail">
         <div className="item-detail-image">
-          <img src={item.imagen} alt={item.nombre} />
+          <img src={item.imagenes?.[0]?.url || item.imagen || '/placeholder.svg'} alt={item.nombre} />
         </div>
         <div className="item-detail-info">
           <h1 className="item-detail-title">{item.nombre}</h1>

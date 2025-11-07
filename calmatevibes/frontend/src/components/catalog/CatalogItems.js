@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import './styles/CatalogItems.css';
+import '../styles/CatalogItems.css';
 import EmptyState from './EmptyState'; // Importamos el nuevo componente
 
 function CatalogItems({ catalogo, catalogos, onEditItem, onPreviewItem, onDeleteItem }) {
   const [searchTerm, setSearchTerm] = useState(''); // Estado para el término de búsqueda
+
+  // Debug: Logging básico para verificar la estructura de datos
+  console.log('🔍 [CatalogItems] Catalogos cargados:', catalogos?.length, 'categorías');
 
   // Filtrar los items según el término de búsqueda
   const filterItems = (items) =>
@@ -40,7 +43,14 @@ function CatalogItems({ catalogo, catalogos, onEditItem, onPreviewItem, onDelete
                 {filteredItems.length > 0 ? (
                   filteredItems.map((item) => (
                     <div key={item.id} className="catalog-item-card">
-                      <img src={item.imagen} alt={item.nombre} className="catalog-item-image" />
+                      <img 
+                        src={item.imagenes?.[0]?.url || item.imagen || '/placeholder.svg'} 
+                        alt={item.nombre} 
+                        className="catalog-item-image"
+                        onError={(e) => {
+                          e.target.src = '/placeholder.svg';
+                        }}
+                      />
                       <div className="catalog-item-info">
                         <h3 className="item-title">{item.nombre}</h3>
                         <p className="item-label">Precio: ${item.precioVenta}</p>
@@ -63,7 +73,14 @@ function CatalogItems({ catalogo, catalogos, onEditItem, onPreviewItem, onDelete
           {filterItems(catalogo?.items || []).length > 0 ? (
             filterItems(catalogo.items).map((item) => (
               <div key={item.id} className="catalog-item-card">
-                <img src={item.imagen} alt={item.nombre} className="catalog-item-image" />
+                <img 
+                  src={item.imagenes?.[0]?.url || item.imagen || '/placeholder.svg'} 
+                  alt={item.nombre} 
+                  className="catalog-item-image"
+                  onError={(e) => {
+                    e.target.src = '/placeholder.svg';
+                  }}
+                />
                 <div className="catalog-item-info">
                   <h3 className="item-title">{item.nombre}</h3>
                   <p className="item-label">Precio: ${item.precioVenta}</p>

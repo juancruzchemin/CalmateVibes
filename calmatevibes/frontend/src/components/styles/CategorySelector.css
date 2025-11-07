@@ -286,3 +286,40 @@
     background-color: #4a5a3a;
   }
 }
+
+/* Estados de carga y vacío */
+.category-selector-loading,
+.category-selector-empty {
+  padding: 0.75rem 1rem;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  cursor: default;
+}
+
+.category-selector-loading span,
+.category-selector-empty span {
+  font-size: 0.9rem;
+}
+
+.category-selector-loading {
+  color: #52691a;
+}
+
+.category-selector-empty {
+  color: #999;
+}
+
+/* Separador visual */
+.category-selector-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 0.25rem 0;
+  padding: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .category-selector-divider {
+    background-color: #444;
+  }
+}

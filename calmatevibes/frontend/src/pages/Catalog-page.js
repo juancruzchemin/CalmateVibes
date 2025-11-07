@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/layout/Header.js';
 import Footer from '../components/layout/Footer.js';
@@ -6,6 +6,13 @@ import Catalogo from '../components/catalog/Catalog.js';
 // import CatalogoIndice from '../components/catalog/CatalogoIndice.js'; // Commented out - not currently used
 import Breadcrumb from '../components/ui/Breadcrumb.js';
 import MobileFilters from '../components/catalog/MobileFilters.js';
+import { CarritoContext } from '../context/CarritoContext.js';
+import productoService from '../services/productoService.js';
+
+// Datos de fallback para cuando el backend no esté disponible
+import matesData from '../data/catalogo-mates.json';
+import bombillasData from '../data/catalogo-bombillas.json';
+import combosData from '../data/catalogo-combos.json';
 
 import './styles/Catalog-page.css';
 
@@ -18,6 +25,7 @@ function Catalog() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [filteredItems, setFilteredItems] = useState([]);
   const sectionRefs = useRef([]);
+  const { carrito } = useContext(CarritoContext);
 
   // Detectar preferencia de motion reducido
   useEffect(() => {
@@ -81,14 +89,126 @@ function Catalog() {
     // Scroll al inicio de la página
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
 
-    // Carga dinámica del JSON del catálogo
+    // Cargar productos desde la API
     const fetchCatalogo = async () => {
       try {
-        const data = await import(`../data/catalogo-${catalogoId}.json`);
-        setCatalogo(data); // Actualiza el estado con los nuevos datos
+        let response, catalogoData;
+        
+        console.log('🔍 [Catalog-page] Cargando catálogo, catalogoId:', catalogoId);
+        
+        if (catalogoId) {
+          // Si hay catalogoId, cargar productos de esa categoría específica usando el slug
+          console.log('📂 [Catalog-page] Cargando categoría con slug:', catalogoId);
+          console.log('🌐 [Catalog-page] URL del servicio:', `http://localhost:5001/api/productos/categoria/${catalogoId}`);
+          response = await productoService.obtenerProductosPorCategoria(catalogoId);
+          console.log('📦 [Catalog-page] Respuesta del backend:', response);
+          
+          if (response.success) {
+            // Usar el nombre de la categoría desde la respuesta si está disponible
+            const categoryName = response.categoria?.nombre || catalogoId.replace(/-/g, ' ');
+            
+            console.log('🔍 [Catalog-page] Analizando respuesta del backend:');
+            console.log('  - response.productos:', response.productos);
+            console.log('  - response.data:', response.data);
+            console.log('  - response.categoria:', response.categoria);
+            
+            const productos = response.productos || response.data || [];
+            console.log('  - productos finales:', productos);
+            console.log('  - cantidad de productos:', productos.length);
+            
+            catalogoData = {
+              nombre: categoryName, // Para el CategorySelector
+              titulo: categoryName.charAt(0).toUpperCase() + categoryName.slice(1),
+              descripcion: response.categoria?.descripcion || `Catálogo de ${categoryName}`,
+              items: productos
+            };
+            console.log('✅ [Catalog-page] Productos de categoría cargados:', catalogoData.items.length);
+            console.log('📋 [Catalog-page] Estructura catalogoData:', catalogoData);
+          } else {
+            console.error('❌ [Catalog-page] Backend retornó success: false');
+            console.error('❌ [Catalog-page] Mensaje de error:', response.message || 'Sin mensaje');
+            setError(`No se pudo cargar el catálogo "${catalogoId}": ${response.message || 'Error desconocido'}`);
+            return;
+          }
+        } else {
+          // Si no hay catalogoId, cargar TODOS los productos
+          console.log('📦 [Catalog-page] Cargando TODOS los productos');
+          response = await productoService.obtenerProductos();
+          console.log('📦 [Catalog-page] Respuesta del backend (todos):', response);
+          
+          if (response.success) {
+            catalogoData = {
+              nombre: 'Todos', // Para el CategorySelector
+              titulo: 'Todos los Productos',
+              descripcion: 'Catálogo completo de productos disponibles',
+              items: response.productos || response.data || []
+            };
+            console.log('✅ [Catalog-page] Todos los productos cargados:', catalogoData.items.length);
+            console.log('📋 [Catalog-page] Estructura catalogoData (todos):', catalogoData);
+          } else {
+            console.error('❌ [Catalog-page] Error cargando todos los productos:', response);
+            setError(`No se pudo cargar el catálogo completo: ${response.message || 'Error desconocido'}`);
+            return;
+          }
+        }
+        
+        setCatalogo(catalogoData);
       } catch (err) {
-        console.error('Error al cargar el catálogo:', err);
-        setError(`No se pudo cargar el catálogo "${catalogoId}". Verifica que existe.`);
+        console.error('❌ [Catalog-page] Error de red o servicio:', err);
+        console.error('❌ [Catalog-page] Intentando usar datos de fallback...');
+        
+        try {
+          // Usar datos estáticos como fallback
+          let catalogoData;
+          
+          if (catalogoId) {
+            // Mapear catalogoId a datos estáticos
+            const catalogoMap = {
+              'mates': matesData,
+              'mate': matesData,
+              'bombillas': bombillasData,
+              'bombilla': bombillasData,
+              'combos': combosData,
+              'combo': combosData
+            };
+            
+            const fallbackData = catalogoMap[catalogoId.toLowerCase()];
+            
+            if (fallbackData) {
+              catalogoData = {
+                nombre: fallbackData.id,
+                titulo: fallbackData.id,
+                descripcion: fallbackData.descripcion,
+                items: fallbackData.items
+              };
+              console.log('✅ [Catalog-page] Usando datos de fallback para:', catalogoId);
+            } else {
+              setError(`Categoría "${catalogoId}" no encontrada`);
+              return;
+            }
+          } else {
+            // Combinar todos los catálogos para "ver todos"
+            const allItems = [
+              ...matesData.items,
+              ...bombillasData.items,
+              ...combosData.items
+            ];
+            
+            catalogoData = {
+              nombre: 'Todos',
+              titulo: 'Todos los Productos',
+              descripcion: 'Catálogo completo de productos disponibles',
+              items: allItems
+            };
+            console.log('✅ [Catalog-page] Usando datos de fallback para todos los productos');
+          }
+          
+          setCatalogo(catalogoData);
+          
+        } catch (fallbackError) {
+          console.error('❌ [Catalog-page] Error con datos de fallback:', fallbackError);
+          setError('No se pudo cargar el catálogo. Por favor, intenta más tarde.');
+        }
       } finally {
         setLoading(false); // Desactiva el estado de "cargando"
       }
@@ -101,7 +221,7 @@ function Catalog() {
   if (loading) {
     return (
       <div className="catalog-page-wrapper">
-        <Header />
+        <Header carrito={carrito} userRole="client" />
         <div className="catalog-loading-container">
           <div className="loading-spinner"></div>
           <p className="loading-text">Cargando catálogo...</p>
@@ -115,7 +235,7 @@ function Catalog() {
   if (error) {
     return (
       <div className="catalog-page-wrapper">
-        <Header />
+        <Header carrito={carrito} userRole="client" />
         <div className="catalog-error-container">
           <h2>¡Oops! Algo salió mal</h2>
           <p>{error}</p>
@@ -135,7 +255,7 @@ function Catalog() {
 
   return (
     <div className="catalog-page-wrapper">
-      <Header />
+      <Header carrito={carrito} userRole="client" />
 
       {/* Breadcrumb mejorado */}
       <div
@@ -146,32 +266,26 @@ function Catalog() {
         <Breadcrumb />
       </div>
 
-      {/* Header del catálogo con índice */}
+      {/* Hero Section - mismo estilo que otras páginas */}
       <div
-        className={`catalog-header fade-section animate-in ${prefersReducedMotion ? 'no-motion' : ''}`}
+        className={`catalog-hero-section fade-section animate-in ${prefersReducedMotion ? 'no-motion' : ''}`}
         ref={(el) => sectionRefs.current[1] = el}
         style={{ animationDelay: '100ms' }}
       >
-        <div className="catalog-header-content">          
-          <div className="catalog-title-section">
-            <div className="title-with-filters">
-              <div className="title-content">
-                <h1 className="catalogo-title">{catalogo.id}</h1>
-                <p className="catalogo-description">{catalogo.descripcion}</p>
-              </div>
-              <div className="mobile-filters-in-title">
-                <button 
-                  className="mobile-filters-button-in-title"
-                  onClick={() => setIsMobileFiltersOpen(true)}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 6H20M4 12H16M4 18H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  <span>Filtros</span>
-                </button>
-              </div>
-            </div>
-          </div>
+        <h1 className="catalog-hero-title">{catalogo.titulo}</h1>
+        <p className="catalog-hero-subtitle">{catalogo.descripcion}</p>
+        
+        {/* Botón de filtros móvil */}
+        <div className="mobile-filters-in-hero">
+          <button 
+            className="mobile-filters-button-in-hero"
+            onClick={() => setIsMobileFiltersOpen(true)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M4 6H20M4 12H16M4 18H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <span>Filtros y Ordenar</span>
+          </button>
         </div>
       </div>
 

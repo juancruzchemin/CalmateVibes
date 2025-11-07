@@ -13,7 +13,7 @@ function PedidosList({ pedidos, selectedPedido, onPedidoSelect, onStatusUpdate }
     
     const badge = badges[estado] || badges['pendiente'];
     return (
-      <span className={`estado-badge ${badge.class}`}>
+      <span className={`pedido-sestado-badge ${badge.class}`}>
         <i className={`bi ${badge.icon}`}></i>
         {badge.text}
       </span>

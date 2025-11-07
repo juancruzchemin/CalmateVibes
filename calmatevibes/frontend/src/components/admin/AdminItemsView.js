@@ -29,17 +29,27 @@ function AdminItemsView({
   };
 
   // Helper para obtener la imagen principal del item
-  const getItemImage = (item) => {
-    // Prioridad: imagenes[0], imagen, imagenHover, placeholder
-    if (item.imagenes && item.imagenes.length > 0) {
-      return item.imagenes[0];
+  const getItemImage = (item) => {    
+    // Prioridad: imagenes[0].url, imagen, imagenHover, placeholder
+    if (item.imagenes && item.imagenes.length > 0 && item.imagenes[0]) {
+      // Si es un objeto con url
+      if (typeof item.imagenes[0] === 'object' && item.imagenes[0].url) {
+        return item.imagenes[0].url;
+      }
+      // Si es un string directo
+      if (typeof item.imagenes[0] === 'string') {
+        return item.imagenes[0];
+      }
     }
+    
+    // Fallbacks
     if (item.imagen) {
       return item.imagen;
     }
     if (item.imagenHover) {
       return item.imagenHover;
     }
+    
     return '/placeholder.svg';
   };
 
@@ -77,9 +87,6 @@ function AdminItemsView({
                     src={getItemImage(item)} 
                     alt={item.nombre}
                     className="table-item-image"
-                    onError={(e) => {
-                      e.target.src = '/placeholder.svg';
-                    }}
                   />
                 </td>
                 <td>
@@ -139,9 +146,6 @@ function AdminItemsView({
               <img 
                 src={getItemImage(item)} 
                 alt={item.nombre}
-                onError={(e) => {
-                  e.target.src = '/placeholder.svg';
-                }}
               />
             </div>
             <div className="list-item-content">
@@ -192,9 +196,6 @@ function AdminItemsView({
             <img 
               src={getItemImage(item)} 
               alt={item.nombre}
-              onError={(e) => {
-                e.target.src = '/placeholder.svg';
-              }}
             />
             <span className={`stock-badge ${getStockStatus(item.stock)}`}>
               {item.stock}
