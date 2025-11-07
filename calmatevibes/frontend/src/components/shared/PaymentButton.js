@@ -4,7 +4,7 @@ function PaymentButton({ items }) {
   const handlePayment = async () => {
     try {
       // Crear la preferencia de pago
-      const response = await fetch('http://localhost:3001/create_preference', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/create_preference`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -99,7 +99,7 @@ function Catalog() {
         if (catalogoId) {
           // Si hay catalogoId, cargar productos de esa categoría específica usando el slug
           console.log('📂 [Catalog-page] Cargando categoría con slug:', catalogoId);
-          console.log('🌐 [Catalog-page] URL del servicio:', `http://localhost:5001/api/productos/categoria/${catalogoId}`);
+          console.log('🌐 [Catalog-page] URL del servicio:', `${process.env.REACT_APP_BACKEND_URL}/productos/categoria/${catalogoId}`);
           response = await productoService.obtenerProductosPorCategoria(catalogoId);
           console.log('📦 [Catalog-page] Respuesta del backend:', response);
           

@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
           const user = JSON.parse(userData);
           
           // Verificar si el token sigue siendo válido
-          const response = await fetch('http://localhost:5001/api/auth/verify', {
+          const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/verify`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
     
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -182,7 +182,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
     
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

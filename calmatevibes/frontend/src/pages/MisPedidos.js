@@ -24,7 +24,7 @@ function MisPedidos() {
       setError(null);
 
       // Llamada a la API para obtener los pedidos del usuario logueado
-      const response = await fetch('http://localhost:5001/api/pedidos/mis-pedidos', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/pedidos/mis-pedidos`, {
         method: 'GET',
         headers: getAuthHeaders()
       });

@@ -20,11 +20,11 @@ function CrearItem() {
         setLoading(true);
 
         // Cargar mates
-        const responseMates = await fetch('http://localhost:5000/api/productos?categoria=mates&conStock=true');
+        const responseMates = await fetch(`${process.env.REACT_APP_BACKEND_URL}/productos?categoria=mates&conStock=true`);
         const resultMates = await responseMates.json();
 
         // Cargar bombillas
-        const responseBombillas = await fetch('http://localhost:5000/api/productos?categoria=bombillas&conStock=true');
+        const responseBombillas = await fetch(`${process.env.REACT_APP_BACKEND_URL}/productos?categoria=bombillas&conStock=true`);
         const resultBombillas = await responseBombillas.json();
 
         if (resultMates.success) {
@@ -51,7 +51,7 @@ function CrearItem() {
     try {
       console.log('Enviando datos:', productData);
 
-      const response = await fetch('http://localhost:5000/api/productos', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/productos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
