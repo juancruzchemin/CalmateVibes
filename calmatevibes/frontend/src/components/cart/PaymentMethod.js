@@ -7,7 +7,7 @@ const PaymentMethod = ({ onNext, onBack }) => {
   const [selectedMethod, setSelectedMethod] = useState('');
 
   // Obtener datos del carrito
-  const { carrito, total, cantidadTotal } = useCarrito();
+  const { carrito, total } = useCarrito();
 
   // Preparar datos para MercadoPago
   const prepareOrderData = () => {

@@ -47,7 +47,7 @@ const MercadoPagoButton = ({
             orderDataRef.current = orderData;
             createPreference();
         }
-    }, [orderData, disabled, loading]);
+    }, [orderData, disabled, loading, createPreference]);
 
     const createPreference = async () => {
         try {

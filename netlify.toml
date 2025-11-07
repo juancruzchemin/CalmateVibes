@@ -1,7 +1,8 @@
 [build]
   base = "calmatevibes/frontend"
   publish = "build"
-  command = "npm run build"
+  command = "CI=false npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
+  CI = "false"

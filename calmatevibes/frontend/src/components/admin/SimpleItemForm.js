@@ -210,9 +210,9 @@ function SimpleItemForm({
             {(() => {
               // Obtener todos los productos seleccionados usando las claves dinámicas
               const selectedProducts = [];
-              const totalProducts = catalogos ? catalogos
-                .filter(categoria => categoria.nombre?.toLowerCase() !== 'combos' && categoria.items?.length > 0)
-                .length : 0;
+              // const totalProducts = catalogos ? catalogos
+              //   .filter(categoria => categoria.nombre?.toLowerCase() !== 'combos' && categoria.items?.length > 0)
+              //   .length : 0;
               
               catalogos && catalogos.forEach(categoria => {
                 if (categoria.nombre?.toLowerCase() !== 'combos') {
