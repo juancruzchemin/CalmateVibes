@@ -9,7 +9,8 @@ const {
   aplicarDescuento,
   removerDescuento,
   migrarCarrito,
-  validarCarrito
+  validarCarrito,
+  actualizarInfoRegalo
 } = require('../controllers/carritoController');
 
 const { optionalAuth } = require('../middleware/auth');
@@ -28,6 +29,9 @@ router.post('/agregar', agregarProducto);
 
 // Actualizar cantidad de producto
 router.put('/actualizar', actualizarCantidad);
+
+// Actualizar información de regalo
+router.put('/regalo', actualizarInfoRegalo);
 
 // Eliminar producto específico
 router.delete('/eliminar/:productoId', eliminarProducto);

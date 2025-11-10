@@ -603,6 +603,75 @@ const validarCarrito = async (req, res) => {
   }
 };
 
+// @desc    Actualizar información de regalo del carrito
+// @route   PUT /api/carritos/regalo
+// @access  Private/Public (con sessionId)
+const actualizarInfoRegalo = async (req, res) => {
+  try {
+    const { esRegalo, nombreRegalo, apellidoRegalo } = req.body;
+    let carrito;
+
+    if (req.usuario) {
+      // Usuario autenticado
+      carrito = await Carrito.findOne({ 
+        usuario: req.usuario.id, 
+        activo: true 
+      });
+    } else {
+      // Usuario invitado
+      const sessionId = req.headers['x-session-id'];
+      if (!sessionId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Session ID requerido para usuarios invitados'
+        });
+      }
+
+      carrito = await Carrito.findOne({ 
+        sessionId, 
+        activo: true 
+      });
+    }
+
+    if (!carrito) {
+      return res.status(404).json({
+        success: false,
+        message: 'Carrito no encontrado'
+      });
+    }
+
+    // Actualizar información de regalo
+    carrito.esRegalo = esRegalo;
+    
+    if (esRegalo && nombreRegalo && apellidoRegalo) {
+      carrito.destinatarioRegalo = {
+        nombre: nombreRegalo.trim(),
+        apellido: apellidoRegalo.trim()
+      };
+    } else {
+      carrito.destinatarioRegalo = {
+        nombre: '',
+        apellido: ''
+      };
+    }
+
+    await carrito.save();
+
+    res.json({
+      success: true,
+      data: carrito,
+      message: 'Información de regalo actualizada correctamente'
+    });
+
+  } catch (error) {
+    console.error('Error al actualizar información de regalo:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 module.exports = {
   obtenerCarrito,
   agregarProducto,
@@ -612,5 +681,6 @@ module.exports = {
   aplicarDescuento,
   removerDescuento,
   migrarCarrito,
-  validarCarrito
+  validarCarrito,
+  actualizarInfoRegalo
 };

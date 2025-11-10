@@ -10,11 +10,30 @@ const crearPedido = async (req, res) => {
   try {
     const {
       items,
+      datosContacto,
       direccionEnvio,
       metodoPago,
       observaciones,
-      descuentos
+      descuentos,
+      esRegalo,
+      destinatarioRegalo
     } = req.body;
+
+    // Validar datos de contacto
+    if (!datosContacto || !datosContacto.nombre || !datosContacto.apellido || !datosContacto.email || !datosContacto.telefono) {
+      return res.status(400).json({
+        success: false,
+        message: 'Los datos de contacto son obligatorios'
+      });
+    }
+
+    // Validar datos de regalo si es necesario
+    if (esRegalo && (!destinatarioRegalo || !destinatarioRegalo.nombre || !destinatarioRegalo.apellido)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Los datos del destinatario son obligatorios para regalos'
+      });
+    }
 
     // Validar y procesar items
     let itemsProcesados = [];
@@ -46,27 +65,49 @@ const crearPedido = async (req, res) => {
 
       const itemProcesado = {
         producto: producto._id,
-        nombre: producto.nombre,
         cantidad: item.cantidad,
-        precioUnitario: producto.precio,
-        subtotal: producto.precio * item.cantidad
+        precioUnitario: producto.precioVenta || producto.precio,
+        subtotal: (producto.precioVenta || producto.precio) * item.cantidad
       };
 
       itemsProcesados.push(itemProcesado);
       subtotal += itemProcesado.subtotal;
     }
 
-    // Crear pedido
-    const pedido = await Pedido.create({
+    // Crear objeto base del pedido
+    const pedidoData = {
       usuario: req.usuario.id,
+      datosContacto: {
+        nombre: datosContacto.nombre.trim(),
+        apellido: datosContacto.apellido.trim(),
+        email: datosContacto.email.trim().toLowerCase(),
+        telefono: datosContacto.telefono.trim()
+      },
       items: itemsProcesados,
       direccionEnvio,
       metodoPago,
-      observaciones,
-      descuentos: descuentos || [],
       subtotal,
-      total: subtotal // Se calculará con descuentos en el modelo
-    });
+      total: subtotal, // Se calculará con descuentos en el modelo
+      esRegalo: esRegalo || false
+    };
+
+    // Agregar información de regalo si corresponde
+    if (esRegalo && destinatarioRegalo) {
+      pedidoData.destinatarioRegalo = {
+        nombre: destinatarioRegalo.nombre.trim(),
+        apellido: destinatarioRegalo.apellido.trim()
+      };
+    }
+
+    // Agregar observaciones si existen
+    if (observaciones) {
+      pedidoData.notas = {
+        cliente: observaciones.trim()
+      };
+    }
+
+    // Crear pedido
+    const pedido = await Pedido.create(pedidoData);
 
     // Actualizar stock de productos
     for (let item of items) {
@@ -80,7 +121,8 @@ const crearPedido = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      data: pedido
+      data: pedido,
+      message: 'Pedido creado correctamente'
     });
   } catch (error) {
     console.error('Error al crear pedido:', error);

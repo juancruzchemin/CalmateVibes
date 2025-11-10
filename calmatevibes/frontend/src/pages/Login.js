@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './styles/Login.css';
+import Header from '../components/layout/Header';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -50,23 +51,26 @@ function Login() {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password) {
       return;
     }
 
     const result = await login(formData.email, formData.password);
-    
+
     if (result.success) {
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
+    // El error ya se maneja en AuthContext y se muestra automáticamente
   };
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // Validaciones del frontend
     if (registerData.password !== registerData.confirmPassword) {
+      // Podríamos usar el sistema de errores del AuthContext aquí también
       alert('Las contraseñas no coinciden');
       return;
     }
@@ -76,13 +80,19 @@ function Login() {
       return;
     }
 
+    if (registerData.password.length < 6) {
+      alert('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
     const { confirmPassword, ...dataToSend } = registerData;
     const result = await register(dataToSend);
-    
+
     if (result.success) {
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
+    // El error ya se maneja en AuthContext y se muestra automáticamente
   };
 
   if (loading) {
@@ -97,16 +107,17 @@ function Login() {
 
   return (
     <div className="login-container">
+      <Header />
       <div className="login-card">
         {/* Tabs */}
         <div className="login-tabs">
-          <button 
+          <button
             className={`tab ${!isRegistering ? 'active' : ''}`}
             onClick={() => setIsRegistering(false)}
           >
             Iniciar Sesión
           </button>
-          <button 
+          <button
             className={`tab ${isRegistering ? 'active' : ''}`}
             onClick={() => setIsRegistering(true)}
           >
@@ -114,17 +125,11 @@ function Login() {
           </button>
         </div>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-
         {!isRegistering ? (
           // Formulario de Login
           <form onSubmit={handleLoginSubmit} className="login-form">
             <h2>Iniciar Sesión</h2>
-            
+
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <input
@@ -151,8 +156,8 @@ function Login() {
               />
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="submit-btn"
               disabled={loading}
             >
@@ -162,8 +167,6 @@ function Login() {
         ) : (
           // Formulario de Registro
           <form onSubmit={handleRegisterSubmit} className="login-form">
-            <h2>Crear Cuenta</h2>
-            
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="nombre">Nombre</label>
@@ -232,8 +235,8 @@ function Login() {
               />
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="submit-btn"
               disabled={loading}
             >
@@ -241,6 +244,14 @@ function Login() {
             </button>
           </form>
         )}
+
+
+        {error && (
+          <div className="error-message-login">
+            {error}
+          </div>
+        )}
+
       </div>
     </div>
   );

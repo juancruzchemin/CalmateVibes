@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 
 // Estado inicial
 const initialState = {
@@ -80,7 +80,7 @@ const authReducer = (state, action) => {
 const AuthContext = createContext();
 
 // Provider
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, onAuthSuccess }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   // Cargar usuario del localStorage al iniciar
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
     
     try {
@@ -153,6 +153,15 @@ export const AuthProvider = ({ children }) => {
           }
         });
         
+        // Llamar al callback de sincronización si existe
+        if (onAuthSuccess) {
+          try {
+            await onAuthSuccess();
+          } catch (err) {
+            console.error('Error en callback de autenticación:', err);
+          }
+        }
+        
         return { success: true, data };
       } else {
         dispatch({
@@ -162,23 +171,31 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: data.message };
       }
     } catch (error) {
+      console.error('Error de login:', error);
+      let errorMessage = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
+      
+      // Si es un error de red específico
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión a internet.';
+      }
+      
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: 'Error de conexión'
+        payload: errorMessage
       });
-      return { success: false, error: 'Error de conexión' };
+      return { success: false, error: errorMessage };
     }
-  };
+  }, []);
 
   // Logout
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
-  };
+  }, []);
 
   // Registro
-  const register = async (userData) => {
+  const register = useCallback(async (userData) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
     
     try {
@@ -205,6 +222,15 @@ export const AuthProvider = ({ children }) => {
           }
         });
         
+        // Llamar al callback de sincronización si existe
+        if (onAuthSuccess) {
+          try {
+            await onAuthSuccess();
+          } catch (err) {
+            console.error('Error en callback de autenticación:', err);
+          }
+        }
+        
         return { success: true, data };
       } else {
         dispatch({
@@ -220,27 +246,29 @@ export const AuthProvider = ({ children }) => {
       });
       return { success: false, error: 'Error de conexión' };
     }
-  };
+  }, []);
 
   // Limpiar error
-  const clearError = () => {
+  const clearError = useCallback(() => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
-  };
+  }, []);
 
   // Verificar si es admin (como propiedad calculada)
-  const isAdmin = state.user && state.user.rol === 'admin';
+  const isAdmin = useMemo(() => {
+    return state.user && state.user.rol === 'admin';
+  }, [state.user]);
 
   // Obtener token para requests
-  const getAuthHeaders = () => {
+  const getAuthHeaders = useCallback(() => {
     return state.token ? {
       'Authorization': `Bearer ${state.token}`,
       'Content-Type': 'application/json'
     } : {
       'Content-Type': 'application/json'
     };
-  };
+  }, [state.token]);
 
-  const value = {
+  const value = useMemo(() => ({
     ...state,
     login,
     logout,
@@ -248,7 +276,7 @@ export const AuthProvider = ({ children }) => {
     clearError,
     isAdmin,
     getAuthHeaders
-  };
+  }), [state, login, logout, register, clearError, isAdmin, getAuthHeaders]);
 
   return (
     <AuthContext.Provider value={value}>

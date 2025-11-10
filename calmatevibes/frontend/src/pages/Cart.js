@@ -15,6 +15,7 @@ function Cart() {
     const [currentStep, setCurrentStep] = useState('cart'); // cart, checkout, payment
     const [customerInfo, setCustomerInfo] = useState({
         nombre: '',
+        apellido: '',
         email: '',
         telefono: '',
         direccion: '',
@@ -137,7 +138,7 @@ function Cart() {
         });
 
         mensaje += `*DATOS DEL CLIENTE:*\n`;
-        mensaje += `Nombre: ${customerInfo.nombre}\n`;
+        mensaje += `Nombre: ${customerInfo.nombre} ${customerInfo.apellido || ''}\n`;
         mensaje += `Email: ${customerInfo.email}\n`;
         mensaje += `Teléfono: ${customerInfo.telefono}\n`;
         mensaje += `Dirección: ${customerInfo.direccion}\n`;
@@ -342,6 +343,7 @@ function Cart() {
                                                     onBack={() => setCurrentStep('checkout')}
                                                     isLoading={isLoading}
                                                     total={totalConEnvio}
+                                                    customerInfo={customerInfo}
                                                 />
                                             </div>
                                         )}
@@ -428,6 +430,7 @@ function Cart() {
                                     onBack={() => setCurrentStep('checkout')}
                                     isLoading={isLoading}
                                     total={totalConEnvio}
+                                    customerInfo={customerInfo}
                                 />
                             </div>
                             <div className="payment-summary-section">

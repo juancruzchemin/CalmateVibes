@@ -33,6 +33,24 @@ const PedidoSchema = new mongoose.Schema({
     }
   },
 
+  // Información de regalo
+  esRegalo: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Datos del destinatario si es regalo
+  destinatarioRegalo: {
+    nombre: {
+      type: String,
+      trim: true
+    },
+    apellido: {
+      type: String,
+      trim: true
+    }
+  },
+
   // Items del pedido
   items: [{
     producto: {

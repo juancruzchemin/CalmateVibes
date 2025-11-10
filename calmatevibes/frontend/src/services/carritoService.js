@@ -225,6 +225,47 @@ const carritoService = {
       console.error('Error en validarCarrito:', error);
       throw error;
     }
+  },
+
+  // Actualizar información de regalo del carrito
+  actualizarInfoRegalo: async (esRegalo, nombreRegalo = '', apellidoRegalo = '', token = null) => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        let sessionId = localStorage.getItem('sessionId');
+        if (!sessionId) {
+          sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('sessionId', sessionId);
+        }
+        headers['x-session-id'] = sessionId;
+      }
+
+      const response = await fetch(`${BASE_URL}/carritos/regalo`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          esRegalo,
+          nombreRegalo,
+          apellidoRegalo
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al actualizar información de regalo');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error en actualizarInfoRegalo:', error);
+      throw error;
+    }
   }
 };
 

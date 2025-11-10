@@ -49,6 +49,24 @@ const CarritoSchema = new mongoose.Schema({
     descripcion: String
   }],
 
+  // Información de regalo
+  esRegalo: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Datos del destinatario si es regalo
+  destinatarioRegalo: {
+    nombre: {
+      type: String,
+      trim: true
+    },
+    apellido: {
+      type: String,
+      trim: true
+    }
+  },
+
   // Estado del carrito
   activo: {
     type: Boolean,

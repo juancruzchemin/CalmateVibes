@@ -1,9 +1,10 @@
 .login-container {
-  min-height: 80vh;
+  min-height: calc(100vh - 80px); /* Descontar altura del header */
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
+  padding-top: 6rem; /* Espacio para el header */
 }
 
 .login-card {
@@ -13,6 +14,8 @@
   width: 100%;
   max-width: 450px;
   overflow: hidden;
+  margin-top: 10rem;
+  margin-bottom: 4rem;
 }
 
 .login-tabs {
@@ -121,15 +124,32 @@
   transform: none;
 }
 
-.error-message {
+.error-message-login {
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   color: #721c24;
-  padding: 0.875rem;
   margin: 0 2rem 1rem 2rem;
   border-radius: 8px;
   font-size: 0.9rem;
   text-align: center;
+  padding: 1rem;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message-login::before {
+  margin-right: 0.5rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .loading-spinner {

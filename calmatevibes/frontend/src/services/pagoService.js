@@ -100,8 +100,8 @@ export const formatearDatosOrden = (carrito, customer = {}, shipping = {}) => {
     // Formatear items del carrito
     const items = carrito.items ? carrito.items.map(item => ({
       id: item._id || item.id,
-      title: item.nombre || item.title || 'Producto',
-      description: item.descripcion || item.description || '',
+      title: item.nombre || item.title,
+      description: item.descripcion || item.description,
       quantity: item.cantidad || 1,
       unit_price: parseFloat(item.precioUnitario || item.precioVenta || item.precio || 0),
       currency_id: 'ARS'
@@ -117,17 +117,17 @@ export const formatearDatosOrden = (carrito, customer = {}, shipping = {}) => {
 
     // Formatear datos del cliente con validaciones
     const payer = {
-      name: customer.nombre?.trim() || 'Cliente',
-      surname: customer.apellido?.trim() || 'Test', 
-      email: customer.email?.trim() || 'test@calmatevibes.com',
+      name: customer.nombre?.trim(),
+      surname: customer.apellido?.trim(), 
+      email: customer.email?.trim(),
       phone: customer.telefono && customer.telefono.trim() ? {
-        area_code: customer.codigoArea || "11",
+        area_code: customer.codigoArea,
         number: customer.telefono.trim()
       } : undefined,
       address: shipping.direccion && shipping.direccion.trim() ? {
         street_name: shipping.direccion.trim(),
-        street_number: parseInt(shipping.numero) || 1234,
-        zip_code: shipping.codigoPostal?.trim() || "1000"
+        street_number: parseInt(shipping.numero),
+        zip_code: shipping.codigoPostal?.trim() 
       } : undefined
     };
 

@@ -42,7 +42,7 @@ router.post('/register', async (req, res) => {
         email: nuevoUsuario.email,
         rol: nuevoUsuario.rol
       },
-      process.env.JWT_SECRET || 'secret_key_temp',
+      process.env.JWT_SECRET,
       { expiresIn: '30d' }
     );
 
@@ -87,7 +87,7 @@ router.post('/login', async (req, res) => {
     if (!usuario) {
       return res.status(401).json({
         success: false,
-        message: 'Credenciales inválidas'
+        message: 'No existe una cuenta con este email'
       });
     }
 
@@ -96,7 +96,7 @@ router.post('/login', async (req, res) => {
     if (!passwordValida) {
       return res.status(401).json({
         success: false,
-        message: 'Credenciales inválidas'
+        message: 'La contraseña es incorrecta'
       });
     }
 
@@ -111,7 +111,7 @@ router.post('/login', async (req, res) => {
         email: usuario.email,
         rol: usuario.rol
       },
-      process.env.JWT_SECRET || 'secret_key_temp',
+      process.env.JWT_SECRET,
       { expiresIn: '30d' }
     );
 

@@ -9,15 +9,15 @@ function CarritoIcono() {
 
   // Animación del contador del carrito
   useEffect(() => {
-    if ((cantidadTotal || carrito.length) > 0) {
+    if ((cantidadTotal || (carrito && carrito.length)) > 0) {
       setAnimateCart(true);
       const timeout = setTimeout(() => setAnimateCart(false), 500); // Duración de la animación
       return () => clearTimeout(timeout);
     }
-  }, [cantidadTotal, carrito.length]);
+  }, [cantidadTotal, carrito]);
 
   // Usar cantidadTotal del contexto o calcular desde el array de items
-  const totalItems = cantidadTotal || carrito.reduce((total, item) => total + (item.cantidad || 1), 0);
+  const totalItems = cantidadTotal || (carrito ? carrito.reduce((total, item) => total + (item.cantidad || 1), 0) : 0);
 
   return (
     <Link to="/cart" className="carrito-icono" aria-label="Ir al carrito">

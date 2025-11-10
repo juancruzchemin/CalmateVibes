@@ -27,106 +27,102 @@ const client = new MercadoPagoConfig({
 const preference = new Preference(client);
 
 const crearPreferencia = async (req, res) => {
-  try {
-    console.log('💳 === CREAR PREFERENCIA DE PAGO ===');
-    console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
+    try {
+        console.log('💳 === CREAR PREFERENCIA DE PAGO ===');
+        console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
 
-    const { items, total, payer, backUrls, auto_return, external_reference, usuario_id, session_id } = req.body;
+        const { items, total, payer, backUrls, auto_return, external_reference, usuario_id, session_id } = req.body;
 
-    // Validaciones básicas
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      console.error('❌ [Backend] Items inválidos:', { items, type: typeof items, isArray: Array.isArray(items) });
-      return res.status(400).json({
-        success: false,
-        message: 'Items del carrito son requeridos'
-      });
+        // Validaciones básicas
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            console.error('❌ [Backend] Items inválidos:', { items, type: typeof items, isArray: Array.isArray(items) });
+            return res.status(400).json({
+                success: false,
+                message: 'Items del carrito son requeridos'
+            });
+        }
+
+        if (!payer || !payer.email) {
+            console.error('❌ [Backend] Payer inválido:', { payer });
+            return res.status(400).json({
+                success: false,
+                message: 'Información del pagador es requerida'
+            });
+        }
+
+        // Configurar URLs base
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+        // Crear external_reference con información del usuario/sesión
+        const referenceData = {
+            referencia: external_reference || `CV_${Date.now()}`,
+            usuario_id: usuario_id || null,
+            session_id: session_id || null,
+            timestamp: Date.now()
+        };
+
+        console.log('🔗 External Reference Data:', referenceData);
+
+        // Formatear preferencia para MercadoPago
+        const preferenceData = {
+            items: items.map((item, index) => ({
+                id: String(item.id || `item_${index + 1}`),
+                title: String(item.title || 'Producto'),
+                description: String(item.description || 'Producto de CalmateVibes'),
+                quantity: Math.max(1, parseInt(item.quantity) || 1),
+                unit_price: Math.max(0.01, parseFloat(item.unit_price) || 0.01),
+                currency_id: 'ARS'
+            })),
+            payer: {
+                name: String(payer.name || 'Cliente'),
+                surname: String(payer.surname || 'Test'),
+                email: String(payer.email)
+            },
+            back_urls: {
+                success: `https://calmatex.netlify.app/`,
+                failure: `https://calmatex.netlify.app/`,
+                pending: `https://calmatex.netlify.app/`,
+            },
+            auto_return: 'approved',
+            notification_url: 'https://calmatevibes.onrender.com/api/pagos/webhook', //|| `${process.env.BACKEND_URL}/api/pagos/webhook`,
+            external_reference: JSON.stringify(referenceData)
+        }
+        const response = await preference.create({ body: preferenceData });
+
+        // Verificar estructura antes de acceder
+        const responseBody = response?.body || response;
+        // Usar la estructura correcta según el SDK
+        const responseData = response?.body || response;
+
+
+        res.json({
+            success: true,
+            preferenceId: responseData?.id,
+            initPoint: responseData?.init_point,
+            sandboxInitPoint: responseData?.sandbox_init_point,
+            externalReference: preferenceData.external_reference,
+            total: total,
+            metadata: {
+                items_count: preferenceData.items.length,
+                subtotal: total,
+                envio: 0,
+                descuento: 0
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ [Backend] Error completo:', {
+            message: error.message,
+            stack: error.stack,
+            response: error.response?.data
+        });
+
+        res.status(500).json({
+            success: false,
+            message: 'Error al crear la preferencia de pago',
+            error: error.message
+        });
     }
-
-    if (!payer || !payer.email) {
-      console.error('❌ [Backend] Payer inválido:', { payer });
-      return res.status(400).json({
-        success: false,
-        message: 'Información del pagador es requerida'
-      });
-    }
-
-    // Configurar URLs base
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    
-    // Crear external_reference con información del usuario/sesión
-    const referenceData = {
-      referencia: external_reference || `CV_${Date.now()}`,
-      usuario_id: usuario_id || null,
-      session_id: session_id || null,
-      timestamp: Date.now()
-    };
-
-    console.log('🔗 External Reference Data:', referenceData);
-
-    // Formatear preferencia para MercadoPago
-    const preferenceData = {
-      items: items.map((item, index) => ({
-        id: String(item.id || `item_${index + 1}`),
-        title: String(item.title || 'Producto'),
-        description: String(item.description || 'Producto de CalmateVibes'),
-        quantity: Math.max(1, parseInt(item.quantity) || 1),
-        unit_price: Math.max(0.01, parseFloat(item.unit_price) || 0.01),
-        currency_id: 'ARS'
-      })),
-      payer: {
-        name: String(payer.name || 'Cliente'),
-        surname: String(payer.surname || 'Test'),
-        email: String(payer.email)
-      },
-      back_urls: {
-        // success: `${frontendUrl}/payment/success`,
-        // failure: `${frontendUrl}/payment/failure`,
-        // pending: `${frontendUrl}/payment/pending`
-
-        success: `https://calmatex.netlify.app/`,
-        failure: `https://calmatex.netlify.app/`,
-        pending: `https://calmatex.netlify.app/`,        
-      },
-      auto_return: 'approved',
-      notification_url: `${process.env.BACKEND_URL || 'http://localhost:5001'}/api/pagos/webhook`,
-      external_reference: JSON.stringify(referenceData)
-    }
-    const response = await preference.create({ body: preferenceData });
-    
-    // Verificar estructura antes de acceder
-    const responseBody = response?.body || response;
-    // Usar la estructura correcta según el SDK
-    const responseData = response?.body || response;
-    
-    
-    res.json({
-      success: true,
-      preferenceId: responseData?.id,
-      initPoint: responseData?.init_point,
-      sandboxInitPoint: responseData?.sandbox_init_point,
-      externalReference: preferenceData.external_reference,
-      total: total,
-      metadata: {
-        items_count: preferenceData.items.length,
-        subtotal: total,
-        envio: 0,
-        descuento: 0
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ [Backend] Error completo:', {
-      message: error.message,
-      stack: error.stack,
-      response: error.response?.data
-    });
-
-    res.status(500).json({
-      success: false,
-      message: 'Error al crear la preferencia de pago',
-      error: error.message
-    });
-  }
 };
 
 // Procesar resultado del pago
@@ -136,11 +132,11 @@ const procesarResultado = async (req, res) => {
         console.log('🔍 Query params:', req.query);
         console.log('📦 Body:', req.body);
 
-        const { 
-            payment_id, 
-            status, 
-            external_reference, 
-            merchant_order_id 
+        const {
+            payment_id,
+            status,
+            external_reference,
+            merchant_order_id
         } = req.query;
 
         if (status === 'approved' && payment_id) {
@@ -209,131 +205,159 @@ const procesarResultado = async (req, res) => {
 };
 
 const crypto = require('crypto');
+const { response } = require('../server');
 
 // Webhook para notificaciones de MercadoPago - IMPLEMENTACIÓN OFICIAL
 const webhook = async (req, res) => {
-    try {
-        console.log('🔔 === WEBHOOK MERCADOPAGO RECIBIDO ===');
-        console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
-        console.log('🔗 Query params:', JSON.stringify(req.query, null, 2));
-        console.log('📋 Headers relevantes:', {
-            'x-signature': req.headers['x-signature'],
-            'x-request-id': req.headers['x-request-id'],
-            'user-agent': req.headers['user-agent']
-        });
+    // const paymentId = req.query.id;
+    // try {
+    //     const response = await fect(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Authorization': `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`
+    //         }
+    //     });
 
-        // 1. VALIDAR FIRMA DEL WEBHOOK (Seguridad)
-        const xSignature = req.headers['x-signature'];
-        const xRequestId = req.headers['x-request-id'];
-        
-        if (xSignature && process.env.MERCADOPAGO_WEBHOOK_SECRET) {
-            try {
-                const isValid = validateWebhookSignature(req, xSignature, xRequestId);
-                if (!isValid) {
-                    console.error('❌ Firma del webhook inválida');
-                    return res.status(401).json({ error: 'Invalid signature' });
-                }
-                console.log('✅ Firma del webhook validada correctamente');
-            } catch (signatureError) {
-                console.error('❌ Error validando firma:', signatureError);
-                // Continuar sin validación en desarrollo
-                if (process.env.NODE_ENV === 'production') {
-                    return res.status(401).json({ error: 'Signature validation failed' });
-                }
-            }
-        } else {
-            console.log('⚠️ Sin validación de firma (falta MERCADOPAGO_WEBHOOK_SECRET o x-signature)');
+    //     if (response.ok) {
+    //         const data = await response.json();
+    //         console.log('💳 Detalles del pago obtenidos via webhook:', data);
+    //     }
+
+    //     res.sendStatus(200);
+    // } catch (error) {
+    //     console.log('❌ Error obteniendo detalles del pago via webhook:', error);
+    //     res.sendStatus(500);
+    // }
+
+    
+ try {
+    console.log('🔔 === WEBHOOK MERCADOPAGO RECIBIDO ===');
+     console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
+     console.log('🔗 Query params:', JSON.stringify(req.query, null, 2));
+     console.log('📋 Headers relevantes:', {
+         'x-signature': req.headers['x-signature'],
+         'x-request-id': req.headers['x-request-id'],
+         'user-agent': req.headers['user-agent']
+     });
+
+     // 1. VALIDAR FIRMA DEL WEBHOOK (Seguridad)
+     const xSignature = req.headers['x-signature'];
+     const xRequestId = req.headers['x-request-id'];
+
+    if (xSignature && process.env.MERCADOPAGO_ACCESS_TOKEN) {
+         try {
+             const isValid = validateWebhookSignature(req, xSignature, xRequestId);
+             if (!isValid) {
+                 console.error('❌ Firma del webhook inválida');
+                return res.status(401).json({ error: 'Invalid signature' });
+             }
+             console.log('✅ Firma del webhook validada correctamente');
+         } catch (signatureError) {
+             console.error('❌ Error validando firma:', signatureError);
+             // Continuar sin validación en desarrollo
+             if (process.env.NODE_ENV === 'production') {
+                 return res.status(401).json({ error: 'Signature validation failed' });
+             }
         }
-
-        // 2. PROCESAR NOTIFICACIÓN
-        const { type, data } = req.body;
-
-        if (type === 'payment' && data && data.id) {
-            console.log('💳 Notificación de pago recibida. Payment ID:', data.id);
-            
-            try {
-                // 3. OBTENER DATOS COMPLETOS DEL PAGO DESDE MERCADOPAGO API
-                const paymentDetails = await getPaymentDetails(data.id);
-                console.log('💰 Detalles del pago obtenidos:', {
-                    id: paymentDetails.id,
-                    status: paymentDetails.status,
-                    transaction_amount: paymentDetails.transaction_amount,
-                    external_reference: paymentDetails.external_reference
-                });
-
-                // 4. PROCESAR SOLO PAGOS APROBADOS
-                if (paymentDetails.status === 'approved') {
-                    console.log('✅ Pago aprobado, procesando automáticamente...');
-
-                    // Extraer información del external_reference
-                    let usuarioId = null;
-                    let sessionId = null;
-
-                    if (paymentDetails.external_reference) {
-                        try {
-                            const refData = JSON.parse(paymentDetails.external_reference);
-                            usuarioId = refData.usuario_id;
-                            sessionId = refData.session_id;
-                            console.log('📋 Datos extraídos del external_reference:', { usuarioId, sessionId });
-                        } catch (e) {
-                            console.log('⚠️ No se pudo parsear external_reference:', paymentDetails.external_reference);
-                        }
-                    }
-
-                    // 5. PROCESAR PAGO EXITOSO (CREAR PEDIDO, ACTUALIZAR STOCK, VACIAR CARRITO)
-                    const paymentData = {
-                        payment_id: paymentDetails.id,
-                        external_reference: paymentDetails.external_reference,
-                        usuario_id: usuarioId,
-                        session_id: sessionId,
-                        payer_email: paymentDetails.payer?.email,
-                        transaction_amount: paymentDetails.transaction_amount,
-                        payment_method_id: paymentDetails.payment_method_id,
-                        payment_type_id: paymentDetails.payment_type_id
-                    };
-
-                    try {
-                        const resultado = await procesarPagoExitoso(paymentData);
-                        console.log('� Pago procesado exitosamente via webhook:', resultado);
-                    } catch (processingError) {
-                        console.error('❌ Error procesando pago exitoso via webhook:', processingError);
-                        // No fallar el webhook por errores de procesamiento interno
-                    }
-                } else {
-                    console.log(`⚠️ Pago con estado: ${paymentDetails.status} - No se procesa automáticamente`);
-                }
-
-            } catch (apiError) {
-                console.error('❌ Error obteniendo detalles del pago desde MP API:', apiError);
-            }
-        } else {
-            console.log(`📝 Notificación de tipo: ${type} - No es payment`);
-        }
-
-        // 6. RESPONDER SIEMPRE CON 200 (REQUERIDO POR MERCADOPAGO)
-        res.status(200).json({ 
-            success: true, 
-            message: 'Webhook procesado correctamente',
-            type: type,
-            data_id: data?.id,
-            timestamp: new Date().toISOString()
-        });
-
-    } catch (error) {
-        console.error('❌ Error general en webhook:', error);
-        // Siempre responder con 200 para evitar reintentos innecesarios
-        res.status(200).json({ 
-            success: false, 
-            message: 'Webhook recibido con errores',
-            error: error.message
-        });
+     } else {
+         console.log('⚠️ Sin validación de firma (falta MERCADOPAGO_WEBHOOK_SECRET o x-signature)');
     }
-};
+
+     // 2. PROCESAR NOTIFICACIÓN
+     const { type, data } = req.body;
+
+     if (type === 'payment' && data && data.id) {
+         console.log('💳 Notificación de pago recibida. Payment ID:', data.id);
+
+         try {
+             // 3. OBTENER DATOS COMPLETOS DEL PAGO DESDE MERCADOPAGO API
+             const paymentDetails = await getPaymentDetails(data.id);
+            console.log('💰 Detalles del pago obtenidos:', {
+                 id: paymentDetails.id,
+                 status: paymentDetails.status,
+                 transaction_amount: paymentDetails.transaction_amount,
+                 external_reference: paymentDetails.external_reference
+             });
+
+            // 4. PROCESAR SOLO PAGOS APROBADOS
+             if (paymentDetails.status === 'approved') {
+                 console.log('✅ Pago aprobado, procesando automáticamente...');
+
+                // Extraer información del external_reference
+                 let usuarioId = null;
+                 let sessionId = null;
+
+                 if (paymentDetails.external_reference) {
+                     try {
+                         const refData = JSON.parse(paymentDetails.external_reference);
+                         usuarioId = refData.usuario_id;
+                         sessionId = refData.session_id;
+                         console.log('📋 Datos extraídos del external_reference:', { usuarioId, sessionId });
+                    } catch (e) {
+                        console.log('⚠️ No se pudo parsear external_reference:', paymentDetails.external_reference);
+                     }
+                 }
+
+                 // 5. PROCESAR PAGO EXITOSO (CREAR PEDIDO, ACTUALIZAR STOCK, VACIAR CARRITO)
+                 const paymentData = {
+                     payment_id: paymentDetails.id,
+                     external_reference: paymentDetails.external_reference,
+                     usuario_id: usuarioId,
+                    session_id: sessionId,
+                    payer_email: paymentDetails.payer?.email,
+                     transaction_amount: paymentDetails.transaction_amount,
+                    payment_method_id: paymentDetails.payment_method_id,
+                     payment_type_id: paymentDetails.payment_type_id
+                 };
+
+                try {
+                     const resultado = await procesarPagoExitoso(paymentData);
+                    console.log('� Pago procesado exitosamente via webhook:', resultado);
+                 } catch (processingError) {
+                     console.error('❌ Error procesando pago exitoso via webhook:', processingError);
+                     // No fallar el webhook por errores de procesamiento interno
+                 }
+             } else {
+                 console.log(`⚠️ Pago con estado: ${paymentDetails.status} - No se procesa automáticamente`);
+             }
+
+        } catch (apiError) {
+             console.error('❌ Error obteniendo detalles del pago desde MP API:', apiError);
+         }
+     } else {
+        console.log(`📝 Notificación de tipo: ${type} - No es payment`);
+     }
+
+     // 6. RESPONDER SIEMPRE CON 200 (REQUERIDO POR MERCADOPAGO)
+     res.status(200).json({ 
+         success: true, 
+         message: 'Webhook procesado correctamente',
+         type: type,
+         data_id: data?.id,
+         timestamp: new Date().toISOString()
+     });
+
+ } catch (error) {
+     console.error('❌ Error general en webhook:', error);
+     // Siempre responder con 200 para evitar reintentos innecesarios
+     res.status(200).json({ 
+         success: false, 
+         message: 'Webhook recibido con errores',
+         error: error.message
+     });
+ }
+
 
 // Función para validar firma del webhook según documentación oficial
+
+}
+
+
+
+
 const validateWebhookSignature = (req, xSignature, xRequestId) => {
     const dataId = req.query['data.id'] || '';
-    
+
     // Extraer ts y hash del x-signature
     const parts = xSignature.split(',');
     let ts = null;
@@ -351,11 +375,11 @@ const validateWebhookSignature = (req, xSignature, xRequestId) => {
 
     // Crear manifest según template oficial
     const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-    
+
     // Calcular HMAC SHA256
-    const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+    const secret = process.env.MERCADOPAGO_ACCESS_TOKEN;
     const cyphedSignature = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
-    
+
     console.log('🔐 Validación de firma:', {
         manifest,
         expected: hash,
@@ -370,14 +394,14 @@ const validateWebhookSignature = (req, xSignature, xRequestId) => {
 const getPaymentDetails = async (paymentId) => {
     try {
         console.log('🔍 Obteniendo detalles del pago:', paymentId);
-        
+
         // Usar la SDK de MercadoPago en lugar de fetch
         const { Payment } = require('mercadopago');
         const payment = new Payment(mercadopagoClient);
-        
+
         const paymentData = await payment.get({ id: paymentId });
         console.log('✅ Detalles del pago obtenidos exitosamente');
-        
+
         return paymentData;
     } catch (error) {
         console.error('❌ Error obteniendo detalles del pago:', error);
@@ -421,10 +445,10 @@ const procesarPagoExitoso = async (paymentData) => {
         console.log('🏆 === PROCESANDO PAGO EXITOSO ===');
         console.log('💰 Datos del pago:', JSON.stringify(paymentData, null, 2));
 
-        const { 
-            payment_id, 
-            external_reference, 
-            usuario_id, 
+        const {
+            payment_id,
+            external_reference,
+            usuario_id,
             session_id,
             payer_email,
             transaction_amount,
@@ -436,15 +460,15 @@ const procesarPagoExitoso = async (paymentData) => {
         let carrito;
         if (usuario_id) {
             console.log('👤 Buscando carrito para usuario:', usuario_id);
-            carrito = await Carrito.findOne({ 
-                usuario: usuario_id, 
-                activo: true 
+            carrito = await Carrito.findOne({
+                usuario: usuario_id,
+                activo: true
             }).populate('items.producto');
         } else if (session_id) {
             console.log('🔄 Buscando carrito para sesión:', session_id);
-            carrito = await Carrito.findOne({ 
-                sessionId: session_id, 
-                activo: true 
+            carrito = await Carrito.findOne({
+                sessionId: session_id,
+                activo: true
             }).populate('items.producto');
         }
 
@@ -486,7 +510,7 @@ const procesarPagoExitoso = async (paymentData) => {
 
         const nuevoPedido = new Pedido({
             usuario: usuario ? usuario._id : null,
-            
+
             // Datos de contacto
             datosContacto: {
                 nombre: usuario ? usuario.nombre : 'Usuario Invitado',

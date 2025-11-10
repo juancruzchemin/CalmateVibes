@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { crearPreferenciaPago, formatearDatosOrden } from '../../services/pagoService';
 import { useAuth } from '../../context/AuthContext';
 
 // Fallback: usar la PUBLIC_KEY directamente si no está en process.env
 const publicKey = process.env.REACT_APP_MERCADOPAGO_PUBLIC_KEY;
-const isTestMode = publicKey && publicKey.includes('TEST');
 // Inicializar solo una vez
 let mercadoPagoInitialized = false;
 
@@ -35,21 +34,8 @@ const MercadoPagoButton = ({
     const createPreferenceRef = useRef(false); // Para evitar múltiples llamadas
     const orderDataRef = useRef(null); // Para comparar orderData
 
-    // Crear preferencia cuando se monta el componente o cambian los datos
-    useEffect(() => {
-        // Solo crear si hay orderData, no está disabled, no está en proceso y los datos cambiaron
-        if (orderData && 
-            !disabled && 
-            !loading && 
-            !createPreferenceRef.current &&
-            JSON.stringify(orderData) !== JSON.stringify(orderDataRef.current)
-        ) {
-            orderDataRef.current = orderData;
-            createPreference();
-        }
-    }, [orderData, disabled, loading, createPreference]);
-
-    const createPreference = async () => {
+    // Función para crear preferencia (usando useCallback para evitar problemas de orden)
+    const createPreference = useCallback(async () => {
         try {
             createPreferenceRef.current = true;
             setLoading(true);
@@ -118,28 +104,21 @@ const MercadoPagoButton = ({
             createPreferenceRef.current = false;
             console.log('🏁 createPreference finalizado - loading:', false);
         }
-    };
+    }, [orderData, user, onPaymentCreated, onPaymentError]);
 
-    // Estados del componente
-    if (disabled) {
-        return (
-            <div className={`mercadopago-button-container disabled ${className}`}>
-                <button disabled style={{ padding: '10px', opacity: 0.5 }}>
-                    Pago no disponible
-                </button>
-            </div>
-        );
-    }
-
-    if (loading) {
-        return (
-            <div className={`mercadopago-button-container loading ${className}`}>
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                    <p>Preparando pago...</p>
-                </div>
-            </div>
-        );
-    }
+    // Crear preferencia cuando se monta el componente o cambian los datos
+    useEffect(() => {
+        // Solo crear si hay orderData, no está disabled, no está en proceso y los datos cambiaron
+        if (orderData && 
+            !disabled && 
+            !loading && 
+            !createPreferenceRef.current &&
+            JSON.stringify(orderData) !== JSON.stringify(orderDataRef.current)
+        ) {
+            orderDataRef.current = orderData;
+            createPreference();
+        }
+    }, [orderData, disabled, loading, createPreference]);
 
     if (error) {
         return (
@@ -166,36 +145,9 @@ const MercadoPagoButton = ({
         );
     }
 
-    if (!preferenceId) {
-        return (
-            <div className={`mercadopago-button-container waiting ${className}`}>
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                    <p>⏳ Cargando opciones de pago...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className={`mercadopago-button-container ready ${className}`} key={preferenceId}>
             {/* Indicador de modo */}
-            {isTestMode && (
-                <div style={{ 
-                    background: '#e8f5e8', 
-                    border: '2px solid #28a745', 
-                    padding: '12px', 
-                    marginBottom: '15px',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    textAlign: 'center',
-                    color: '#155724',
-                    fontWeight: '600'
-                }}>
-                    <strong>Modo de prueba activo</strong>
-                    <br />
-                    <small>Usa tarjetas de test para probar la integración</small>
-                </div>
-            )}
             
             <Wallet
                 initialization={{
