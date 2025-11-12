@@ -208,11 +208,77 @@ const procesarResultado = async (req, res) => {
 // Función para guardar pago en la base de datos
 const guardarPago = async (paymentData, usuarioId, sessionId) => {
     try {
-        // Verificar si el pago ya existe para evitar duplicados
-        const pagoExistente = await Pago.findOne({ paymentId: paymentData.id.toString() });
+        console.log(`💾 Guardando pago ${paymentData.id} - Usuario: ${usuarioId}, Sesión: ${sessionId}`);
         
-        if (pagoExistente) {
-            console.log('🔄 Actualizando pago existente:', paymentData.id);
+        // Usar findOneAndUpdate con upsert para manejar duplicados automáticamente
+        const pagoData = {
+            paymentId: paymentData.id.toString(),
+            status: paymentData.status,
+            transactionAmount: paymentData.transaction_amount,
+            externalReference: paymentData.external_reference,
+            
+            // Información del pagador
+            payer: {
+                email: paymentData.payer?.email || null,
+                identification: paymentData.payer?.identification ? {
+                    type: paymentData.payer.identification.type || null,
+                    number: paymentData.payer.identification.number || null
+                } : {
+                    type: null,
+                    number: null
+                },
+                phone: paymentData.payer?.phone ? {
+                    area_code: paymentData.payer.phone.area_code || null,
+                    number: paymentData.payer.phone.number || null
+                } : {
+                    area_code: null,
+                    number: null
+                }
+            },
+            
+            // Método de pago
+            paymentMethodId: paymentData.payment_method_id,
+            paymentTypeId: paymentData.payment_type_id,
+            
+            // Fechas
+            dateCreated: new Date(paymentData.date_created),
+            dateApproved: paymentData.date_approved ? new Date(paymentData.date_approved) : null,
+            dateLastUpdated: paymentData.date_last_updated ? new Date(paymentData.date_last_updated) : null,
+            
+            // Usuario/sesión
+            usuario: usuarioId || null,
+            sessionId: sessionId || null,
+            
+            // Datos completos para auditoría
+            mercadoPagoData: paymentData
+        };
+
+        // Intentar actualizar o crear el pago
+        const resultado = await Pago.findOneAndUpdate(
+            { paymentId: paymentData.id.toString() },
+            {
+                $set: pagoData,
+                $push: {
+                    historial: {
+                        estado: paymentData.status,
+                        descripcion: `Webhook procesado - ${new Date().toLocaleString()}`
+                    }
+                }
+            },
+            { 
+                upsert: true, 
+                new: true,
+                setDefaultsOnInsert: true
+            }
+        );
+
+        console.log(`✅ Pago ${resultado.paymentId} ${resultado.isNew ? 'creado' : 'actualizado'} exitosamente`);
+        return resultado;
+        
+    } catch (error) {
+        // Si aún hay error de duplicado, intentar solo actualizar
+        if (error.code === 11000) {
+            console.log('🔄 Conflicto de duplicado, actualizando registro existente...');
             
             // Actualizar pago existente
             const pagoActualizado = await Pago.findOneAndUpdate(
@@ -220,13 +286,13 @@ const guardarPago = async (paymentData, usuarioId, sessionId) => {
                 {
                     status: paymentData.status,
                     transactionAmount: paymentData.transaction_amount,
-                    dateLastUpdated: new Date(paymentData.date_last_updated),
+                    dateLastUpdated: paymentData.date_last_updated ? new Date(paymentData.date_last_updated) : null,
                     dateApproved: paymentData.date_approved ? new Date(paymentData.date_approved) : null,
                     mercadoPagoData: paymentData,
                     $push: {
                         historial: {
                             estado: paymentData.status,
-                            descripcion: `Estado actualizado via webhook`
+                            descripcion: `Estado actualizado por conflicto - ${new Date().toLocaleString()}`
                         }
                     }
                 },
@@ -234,65 +300,11 @@ const guardarPago = async (paymentData, usuarioId, sessionId) => {
             );
             
             return pagoActualizado;
-        } else {
-            console.log('➕ Creando nuevo pago:', paymentData.id);
-            
-            // Crear nuevo pago
-            const nuevoPago = new Pago({
-                paymentId: paymentData.id.toString(),
-                status: paymentData.status,
-                transactionAmount: paymentData.transaction_amount,
-                externalReference: paymentData.external_reference,
-                
-                // Información del pagador
-                payer: {
-                    email: paymentData.payer?.email || null,
-                    identification: paymentData.payer?.identification ? {
-                        type: paymentData.payer.identification.type || null,
-                        number: paymentData.payer.identification.number || null
-                    } : {
-                        type: null,
-                        number: null
-                    },
-                    phone: paymentData.payer?.phone ? {
-                        area_code: paymentData.payer.phone.area_code || null,
-                        number: paymentData.payer.phone.number || null
-                    } : {
-                        area_code: null,
-                        number: null
-                    }
-                },
-                
-                // Método de pago
-                paymentMethodId: paymentData.payment_method_id,
-                paymentTypeId: paymentData.payment_type_id,
-                
-                // Fechas
-                dateCreated: new Date(paymentData.date_created),
-                dateApproved: paymentData.date_approved ? new Date(paymentData.date_approved) : null,
-                dateLastUpdated: paymentData.date_last_updated ? new Date(paymentData.date_last_updated) : null,
-                
-                // Usuario/sesión
-                usuario: usuarioId || null,
-                sessionId: sessionId || null,
-                
-                // Datos completos para auditoría
-                mercadoPagoData: paymentData,
-                
-                // Historial inicial
-                historial: [{
-                    estado: paymentData.status,
-                    descripcion: 'Pago recibido via webhook'
-                }]
-            });
-            
-            const pagoGuardado = await nuevoPago.save();
-            return pagoGuardado;
         }
-    } catch (error) {
+        
         console.error('❌ Error en guardarPago:', error);
         throw error;
-    }
+    } 
 };
 
 // Webhook para notificaciones de MercadoPago - IMPLEMENTACIÓN DIRECTA
@@ -496,6 +508,12 @@ const procesarPagoExitoso = async (paymentData) => {
         }
 
         if (!carrito || !carrito.items || carrito.items.length === 0) {
+            console.error('❌ No se encontró carrito o está vacío:', { 
+                carritoEncontrado: !!carrito, 
+                tieneItems: carrito?.items?.length, 
+                usuarioId: usuario_id, 
+                sessionId: session_id 
+            });
             throw new Error('No se encontró carrito o está vacío');
         }
 
@@ -531,6 +549,14 @@ const procesarPagoExitoso = async (paymentData) => {
 
         const subtotal = itemsPedido.reduce((sum, item) => sum + item.subtotal, 0);
 
+        // Verificar si el usuario tiene una dirección completa
+        const direccionCompleta = usuario?.direccion && 
+            usuario.direccion.calle && 
+            usuario.direccion.numero && 
+            usuario.direccion.ciudad && 
+            usuario.direccion.provincia && 
+            usuario.direccion.codigoPostal;
+
         const nuevoPedido = new Pedido({
             usuario: usuario ? usuario._id : null,
 
@@ -545,8 +571,8 @@ const procesarPagoExitoso = async (paymentData) => {
             // Items del pedido
             items: itemsPedido,
 
-            // Dirección por defecto - usar datos válidos que cumplan validaciones
-            direccionEnvio: usuario?.direccion || {
+            // Dirección - usar dirección completa del usuario o placeholders válidos
+            direccionEnvio: direccionCompleta ? usuario.direccion : {
                 calle: 'A confirmar por el cliente',
                 numero: '1',
                 ciudad: 'Buenos Aires',
@@ -593,37 +619,41 @@ const procesarPagoExitoso = async (paymentData) => {
                 transactionAmount: transaction_amount,
                 dateApproved: new Date(),
                 dateCreated: new Date()
-            },
-
-            // Historial de estados
-            historialEstados: [
-                {
-                    estado: 'pendiente',
-                    fecha: new Date(),
-                    comentario: 'Pedido creado por pago exitoso de MercadoPago'
-                },
-                {
-                    estado: 'confirmado',
-                    fecha: new Date(),
-                    comentario: `Pago confirmado. ID: ${payment_id}`
-                }
-            ]
+            }
         });
 
-        console.log('💾 Intentando guardar pedido con datos:', JSON.stringify({
+        console.log('💾 Intentando guardar pedido con datos completos:', JSON.stringify({
             usuario: nuevoPedido.usuario,
             datosContacto: nuevoPedido.datosContacto,
             direccionEnvio: nuevoPedido.direccionEnvio,
-            items: nuevoPedido.items.length,
+            items: nuevoPedido.items,
             subtotal: nuevoPedido.subtotal,
             total: nuevoPedido.total,
-            estado: nuevoPedido.estado
+            estado: nuevoPedido.estado,
+            metodoPago: nuevoPedido.metodoPago,
+            envio: nuevoPedido.envio
         }, null, 2));
 
-        const pedidoGuardado = await nuevoPedido.save();
-        console.log('✅ Pedido creado exitosamente:', pedidoGuardado._id);
+        console.log('🔄 Ejecutando nuevoPedido.save()...');
+        let pedidoGuardado;
+        try {
+            pedidoGuardado = await nuevoPedido.save();
+            console.log('✅ Pedido creado exitosamente con ID:', pedidoGuardado._id);
+            console.log('📋 Número de pedido generado:', pedidoGuardado.numeroPedido);
+        } catch (saveError) {
+            console.error('❌ Error específico al guardar pedido:', saveError);
+            if (saveError.name === 'ValidationError') {
+                console.error('📋 Errores de validación del pedido:');
+                Object.keys(saveError.errors).forEach(key => {
+                    console.error(`  - ${key}: ${saveError.errors[key].message}`);
+                    console.error(`    Valor recibido:`, saveError.errors[key].value);
+                });
+            }
+            throw saveError; // Re-lanzar el error para que sea manejado por el catch principal
+        }
 
         // 5. Actualizar stock de productos
+        console.log('📦 Iniciando actualización de stock...');
         for (const item of carrito.items) {
             const producto = await Producto.findById(item.producto._id);
             const stockAnterior = producto.stock;
@@ -631,8 +661,10 @@ const procesarPagoExitoso = async (paymentData) => {
             await producto.save();
             console.log(`📦 Stock actualizado para ${producto.nombre}: ${stockAnterior} -> ${producto.stock}`);
         }
+        console.log('✅ Stock actualizado completamente');
 
         // 6. Vaciar el carrito
+        console.log('🛒 Vaciando carrito...');
         carrito.items = [];
         carrito.activo = false; // Desactivar el carrito
         await carrito.save();
@@ -640,6 +672,7 @@ const procesarPagoExitoso = async (paymentData) => {
 
         // 7. Si hay usuario, crear un nuevo carrito activo
         if (usuario_id) {
+            console.log('🆕 Creando nuevo carrito para usuario...');
             const nuevoCarrito = new Carrito({
                 usuario: usuario_id,
                 items: [],
@@ -649,11 +682,14 @@ const procesarPagoExitoso = async (paymentData) => {
             console.log('🆕 Nuevo carrito creado para el usuario');
         }
 
-        console.log('🎉 Pago procesado exitosamente. Pedido ID:', pedidoGuardado._id);
+        console.log('🎉 === PAGO PROCESADO EXITOSAMENTE ===');
+        console.log('📋 Pedido ID:', pedidoGuardado._id);
+        console.log('🔢 Número de pedido:', pedidoGuardado.numeroPedido);
 
         return {
             success: true,
             pedidoId: pedidoGuardado._id,
+            numeroPedido: pedidoGuardado.numeroPedido,
             mensaje: 'Pago procesado exitosamente'
         };
 
