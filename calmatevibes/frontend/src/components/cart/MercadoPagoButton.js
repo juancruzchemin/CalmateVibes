@@ -1,162 +1,197 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { crearPreferenciaPago, formatearDatosOrden } from '../../services/pagoService';
 import { useAuth } from '../../context/AuthContext';
 
-// Fallback: usar la PUBLIC_KEY directamente si no está en process.env
+// Configuración inicial de MercadoPago
 const publicKey = process.env.REACT_APP_MERCADOPAGO_PUBLIC_KEY;
-// Inicializar solo una vez
-let mercadoPagoInitialized = false;
+let isInitialized = false;
 
-if (publicKey && publicKey !== 'undefined' && !mercadoPagoInitialized) {
+if (publicKey && publicKey !== 'undefined' && !isInitialized) {
     try {
         initMercadoPago(publicKey);
-        mercadoPagoInitialized = true;
+        isInitialized = true;
+        console.log('✅ MercadoPago inicializado');
     } catch (error) {
         console.error('❌ Error al inicializar MercadoPago:', error);
     }
 } else if (!publicKey) {
-    console.error('❌ No se encontró una PUBLIC_KEY válida');
+    console.error('❌ No se encontró PUBLIC_KEY válida');
 }
 
-const MercadoPagoButton = ({
+function MercadoPagoButton({
     orderData,
     onPaymentCreated,
     onPaymentError,
     disabled = false,
-    className = '',
-    customization = {}
-}) => {
-    const { user } = useAuth(); // Obtener información del usuario autenticado
+    className = ''
+}) {
+    const { user } = useAuth();
     const [preferenceId, setPreferenceId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const createPreferenceRef = useRef(false); // Para evitar múltiples llamadas
-    const orderDataRef = useRef(null); // Para comparar orderData
+    const isCreatingRef = useRef(false);
+    const lastOrderDataRef = useRef(null);
 
-    // Función para crear preferencia (usando useCallback para evitar problemas de orden)
-    const createPreference = useCallback(async () => {
+    // Función para crear preferencia de pago
+    async function createPaymentPreference() {
+        if (isCreatingRef.current || loading || disabled || !orderData) {
+            return;
+        }
+
+        const currentOrderData = JSON.stringify(orderData);
+        if (currentOrderData === lastOrderDataRef.current) {
+            return;
+        }
+
         try {
-            createPreferenceRef.current = true;
+            isCreatingRef.current = true;
+            lastOrderDataRef.current = currentOrderData;
             setLoading(true);
             setError(null);
-            setPreferenceId(null); // Limpiar preferenceId anterior
+            setPreferenceId(null);
 
-            // Validar orderData básico
-            if (!orderData) {
-                throw new Error('orderData es undefined o null');
-            }
+            console.log('🚀 Creando preferencia de pago...');
 
-            // Intentar formatear datos
-            let datosFormateados;
-            try {                
-                datosFormateados = formatearDatosOrden(
-                    orderData.carrito,
-                    orderData.customer,
-                    orderData.shipping 
-                );
-                console.log('📋 Datos formateados:', JSON.stringify(datosFormateados, null, 2));
-            } catch (formatError) {
-                throw new Error(`Error al formatear datos: ${formatError.message}`);
-            }
+            // Formatear datos
+            const formattedData = formatearDatosOrden(
+                orderData.carrito,
+                orderData.customer,
+                orderData.shipping 
+            );
 
-            // Intentar crear preferencia
-            let response;
-            try {
-                console.log('📨 Enviando petición al backend...');
-                console.log('👤 Usuario actual:', user);
-                response = await crearPreferenciaPago(datosFormateados, user);
-                console.log('📨 Respuesta recibida:', response);
-            } catch (apiError) {
-                throw new Error(`Error de API: ${apiError.message}`);
-            }
+            console.log('📋 Datos formateados:', formattedData);
 
-            // Validar respuesta
-            if (!response) {
-                throw new Error('Respuesta vacía del servidor');
-            }
+            // Crear preferencia
+            const response = await crearPreferenciaPago(formattedData, user);
 
-            if (!response.success) {
-                throw new Error(response.message || 'El servidor respondió con error');
+            console.log('📨 Respuesta del servidor:', response);
+
+            if (!response || !response.success) {
+                throw new Error(response?.message || 'Error al crear preferencia');
             }
 
             if (!response.preferenceId) {
-                console.error('❌ Respuesta sin preferenceId:', response);
-                throw new Error('El servidor no devolvió un preferenceId válido');
+                throw new Error('No se recibió preferenceId del servidor');
             }
 
-            console.log('✅ Preferencia creada exitosamente:', response.preferenceId);
+            console.log('✅ Preferencia creada:', response.preferenceId);
             setPreferenceId(response.preferenceId);
 
             if (onPaymentCreated) {
                 onPaymentCreated(response);
             }
 
-        } catch (error) {
-            console.error('❌ Error en createPreference:', error);
-            setError(error.message);
+        } catch (err) {
+            console.error('❌ Error creando preferencia:', err);
+            const errorMessage = err.message || 'Error desconocido';
+            setError(errorMessage);
 
             if (onPaymentError) {
-                onPaymentError(error);
+                onPaymentError(err);
             }
         } finally {
             setLoading(false);
-            createPreferenceRef.current = false;
-            console.log('🏁 createPreference finalizado - loading:', false);
+            isCreatingRef.current = false;
         }
-    }, [orderData, user, onPaymentCreated, onPaymentError]);
+    }
 
-    // Crear preferencia cuando se monta el componente o cambian los datos
+    // Effect para crear preferencia cuando cambian los datos
     useEffect(() => {
-        // Solo crear si hay orderData, no está disabled, no está en proceso y los datos cambiaron
-        if (orderData && 
-            !disabled && 
-            !loading && 
-            !createPreferenceRef.current &&
-            JSON.stringify(orderData) !== JSON.stringify(orderDataRef.current)
-        ) {
-            orderDataRef.current = orderData;
-            createPreference();
+        if (orderData && !disabled) {
+            createPaymentPreference();
         }
-    }, [orderData, disabled, loading, createPreference]);
+    }, [orderData, disabled]);
 
+    // Función para reintentar
+    const handleRetry = () => {
+        isCreatingRef.current = false;
+        lastOrderDataRef.current = null;
+        setError(null);
+        createPaymentPreference();
+    };
+
+    // Renderizar error
     if (error) {
         return (
-            <div className={`mercadopago-button-container error ${className}`}>
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                    <p style={{ color: 'red', marginBottom: '10px' }}>❌ {error}</p>
+            <div className={`mercadopago-error ${className}`}>
+                <div style={{ 
+                    textAlign: 'center', 
+                    padding: '20px',
+                    border: '1px solid #e74c3c',
+                    borderRadius: '8px',
+                    backgroundColor: '#fdf2f2'
+                }}>
+                    <p style={{ color: '#e74c3c', marginBottom: '10px' }}>
+                        ❌ {error}
+                    </p>
                     <button
-                        onClick={() => {
-                            createPreferenceRef.current = false;
-                            createPreference();
-                        }}
+                        onClick={handleRetry}
                         style={{
                             padding: '10px 20px',
-                            backgroundColor: '#007bff',
+                            backgroundColor: '#3498db',
                             color: 'white',
                             border: 'none',
-                            borderRadius: '4px'
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '14px'
                         }}
                     >
-                        Intentar nuevamente
+                        Reintentar
                     </button>
                 </div>
             </div>
         );
     }
 
+    // Renderizar loading
+    if (loading) {
+        return (
+            <div className={`mercadopago-loading ${className}`}>
+                <div style={{ 
+                    textAlign: 'center', 
+                    padding: '30px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px'
+                }}>
+                    <div style={{
+                        width: '20px',
+                        height: '20px',
+                        border: '2px solid #f3f3f3',
+                        borderTop: '2px solid #3498db',
+                        borderRadius: '50%',
+                        margin: '0 auto 10px'
+                    }}></div>
+                    <p style={{ color: '#666', margin: 0 }}>
+                        Preparando método de pago...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // Renderizar Wallet
+    if (preferenceId) {
+        return (
+            <div className={`mercadopago-wallet ${className}`} key={preferenceId}>
+                <Wallet
+                    initialization={{
+                        preferenceId: preferenceId,
+                        redirectMode: 'blank'
+                    }}
+                />
+            </div>
+        );
+    }
+
+    // Estado inicial
     return (
-        <div className={`mercadopago-button-container ready ${className}`} key={preferenceId}>
-            {/* Indicador de modo */}
-            
-            <Wallet
-                initialization={{
-                    preferenceId: preferenceId,
-                    redirectMode: 'blank'
-                }}
-            />
+        <div className={`mercadopago-initial ${className}`}>
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+                <p style={{ color: '#999' }}>Inicializando...</p>
+            </div>
         </div>
     );
-};
+}
 
 export default MercadoPagoButton;

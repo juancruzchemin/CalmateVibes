@@ -51,7 +51,7 @@ const crearPreferencia = async (req, res) => {
         }
 
         // Configurar URLs base
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL;
 
         // Crear external_reference con información del usuario/sesión
         const referenceData = {
