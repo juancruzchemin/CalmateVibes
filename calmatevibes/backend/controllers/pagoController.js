@@ -534,25 +534,26 @@ const procesarPagoExitoso = async (paymentData) => {
         const nuevoPedido = new Pedido({
             usuario: usuario ? usuario._id : null,
 
-            // Datos de contacto
+            // Datos de contacto - usar datos válidos o placeholders que cumplan validaciones
             datosContacto: {
-                nombre: usuario ? usuario.nombre : 'Usuario Invitado',
-                apellido: usuario ? usuario.apellido : '',
-                email: payer_email || (usuario ? usuario.email : 'no-disponible@example.com'),
-                telefono: usuario ? usuario.telefono : ''
+                nombre: usuario?.nombre || 'Usuario Invitado',
+                apellido: usuario?.apellido || 'MercadoPago',
+                email: payer_email || usuario?.email || 'no-disponible@example.com',
+                telefono: usuario?.telefono || '1234567890' // Placeholder válido para completar después
             },
 
             // Items del pedido
             items: itemsPedido,
 
-            // Dirección por defecto (será actualizada por el usuario después)
-            direccionEnvio: usuario && usuario.direccion ? usuario.direccion : {
-                calle: 'Por definir',
-                numero: '0',
-                ciudad: 'Por definir',
-                provincia: 'Por definir',
-                codigoPostal: '0000',
-                pais: 'Argentina'
+            // Dirección por defecto - usar datos válidos que cumplan validaciones
+            direccionEnvio: usuario?.direccion || {
+                calle: 'A confirmar por el cliente',
+                numero: '1',
+                ciudad: 'Buenos Aires',
+                provincia: 'Buenos Aires', 
+                codigoPostal: '1000',
+                pais: 'Argentina',
+                referencias: 'Dirección a confirmar - Pedido creado automáticamente desde pago'
             },
 
             // Totales
@@ -574,6 +575,12 @@ const procesarPagoExitoso = async (paymentData) => {
             // Tipo de envío por defecto
             envio: {
                 tipo: 'retiro_local'
+            },
+
+            // Notas internas
+            notas: {
+                admin: 'Pedido creado automáticamente desde webhook de MercadoPago. Requiere confirmación de datos de contacto y envío por parte del cliente.',
+                cliente: 'Su pedido ha sido confirmado. Por favor, complete sus datos de contacto y envío en su perfil.'
             },
 
             // Información de MercadoPago
@@ -602,6 +609,16 @@ const procesarPagoExitoso = async (paymentData) => {
                 }
             ]
         });
+
+        console.log('💾 Intentando guardar pedido con datos:', JSON.stringify({
+            usuario: nuevoPedido.usuario,
+            datosContacto: nuevoPedido.datosContacto,
+            direccionEnvio: nuevoPedido.direccionEnvio,
+            items: nuevoPedido.items.length,
+            subtotal: nuevoPedido.subtotal,
+            total: nuevoPedido.total,
+            estado: nuevoPedido.estado
+        }, null, 2));
 
         const pedidoGuardado = await nuevoPedido.save();
         console.log('✅ Pedido creado exitosamente:', pedidoGuardado._id);
@@ -642,6 +659,15 @@ const procesarPagoExitoso = async (paymentData) => {
 
     } catch (error) {
         console.error('❌ Error al procesar pago exitoso:', error);
+        
+        // Log detalles específicos de errores de validación
+        if (error.name === 'ValidationError') {
+            console.error('📋 Errores de validación detallados:');
+            Object.keys(error.errors).forEach(key => {
+                console.error(`  - ${key}: ${error.errors[key].message}`);
+            });
+        }
+        
         throw error;
     }
 };
