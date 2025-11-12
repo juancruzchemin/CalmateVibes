@@ -1,10 +1,9 @@
-const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
-const crypto = require('crypto');
+const { MercadoPagoConfig, Preference } = require('mercadopago');
 const Pedido = require('../models/Pedido');
 const Producto = require('../models/Producto');
 const Carrito = require('../models/Carrito');
 const Usuario = require('../models/Usuario');
-const { response } = require('../server');
+const Pago = require('../models/Pago');
 
 // Inicializar el cliente de Mercado Pago con el token correcto
 const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
@@ -206,244 +205,225 @@ const procesarResultado = async (req, res) => {
     }
 };
 
-// Webhook para notificaciones de MercadoPago - IMPLEMENTACIÓN OFICIAL
-const webhook = async (req, res) => {
-    // const paymentId = req.query.id;
-    // try {
-    //     const response = await fect(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-    //         method: 'GET',
-    //         headers: {
-    //             'Authorization': `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`
-    //         }
-    //     });
-
-    //     if (response.ok) {
-    //         const data = await response.json();
-    //         console.log('💳 Detalles del pago obtenidos via webhook:', data);
-    //     }
-
-    //     res.sendStatus(200);
-    // } catch (error) {
-    //     console.log('❌ Error obteniendo detalles del pago via webhook:', error);
-    //     res.sendStatus(500);
-    // }
-
-    
- try {
-    console.log('🔔 === WEBHOOK MERCADOPAGO RECIBIDO ===');
-     console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
-     console.log('🔗 Query params:', JSON.stringify(req.query, null, 2));
-     console.log('📋 Headers relevantes:', {
-         'x-signature': req.headers['x-signature'],
-         'x-request-id': req.headers['x-request-id'],
-         'user-agent': req.headers['user-agent']
-     });
-
-     // 1. VALIDAR FIRMA DEL WEBHOOK (Seguridad)
-     const xSignature = req.headers['x-signature'];
-     const xRequestId = req.headers['x-request-id'];
-
-    if (xSignature && process.env.MERCADOPAGO_ACCESS_TOKEN) {
-         try {
-             const isValid = validateWebhookSignature(req, xSignature, xRequestId);
-             if (!isValid) {
-                 console.error('❌ Firma del webhook inválida');
-                 // En desarrollo, continuamos procesando para debugging
-                 if (process.env.NODE_ENV === 'production') {
-                     return res.status(401).json({ error: 'Invalid signature' });
-                 } else {
-                     console.log('⚠️  DESARROLLO: Continuando a pesar de firma inválida...');
-                 }
-             } else {
-                 console.log('✅ Firma del webhook validada correctamente');
-             }
-         } catch (signatureError) {
-             console.error('❌ Error validando firma:', signatureError);
-             // Continuar sin validación en desarrollo
-             if (process.env.NODE_ENV === 'production') {
-                 return res.status(401).json({ error: 'Signature validation failed' });
-             } else {
-                 console.log('⚠️  DESARROLLO: Continuando a pesar de error de validación...');
-             }
-        }
-     } else {
-         console.log('⚠️ Sin validación de firma (falta ACCESS_TOKEN o x-signature)');
-    }
-
-     // 2. PROCESAR NOTIFICACIÓN
-     const { type, data } = req.body;
-
-     if (type === 'payment' && data && data.id) {
-         console.log('💳 Notificación de pago recibida. Payment ID:', data.id);
-
-         try {
-             // 3. OBTENER DATOS COMPLETOS DEL PAGO DESDE MERCADOPAGO API
-             const paymentDetails = await getPaymentDetails(data.id);
-            console.log('💰 Detalles del pago obtenidos:', {
-                 id: paymentDetails.id,
-                 status: paymentDetails.status,
-                 transaction_amount: paymentDetails.transaction_amount,
-                 external_reference: paymentDetails.external_reference
-             });
-
-            // 4. PROCESAR SOLO PAGOS APROBADOS
-             if (paymentDetails.status === 'approved') {
-                 console.log('✅ Pago aprobado, procesando automáticamente...');
-
-                // Extraer información del external_reference
-                 let usuarioId = null;
-                 let sessionId = null;
-
-                 if (paymentDetails.external_reference) {
-                     try {
-                         const refData = JSON.parse(paymentDetails.external_reference);
-                         usuarioId = refData.usuario_id;
-                         sessionId = refData.session_id;
-                         console.log('📋 Datos extraídos del external_reference:', { usuarioId, sessionId });
-                    } catch (e) {
-                        console.log('⚠️ No se pudo parsear external_reference:', paymentDetails.external_reference);
-                     }
-                 }
-
-                 // 5. PROCESAR PAGO EXITOSO (CREAR PEDIDO, ACTUALIZAR STOCK, VACIAR CARRITO)
-                 const paymentData = {
-                     payment_id: paymentDetails.id,
-                     external_reference: paymentDetails.external_reference,
-                     usuario_id: usuarioId,
-                    session_id: sessionId,
-                    payer_email: paymentDetails.payer?.email,
-                     transaction_amount: paymentDetails.transaction_amount,
-                    payment_method_id: paymentDetails.payment_method_id,
-                     payment_type_id: paymentDetails.payment_type_id
-                 };
-
-                try {
-                     const resultado = await procesarPagoExitoso(paymentData);
-                    console.log('� Pago procesado exitosamente via webhook:', resultado);
-                 } catch (processingError) {
-                     console.error('❌ Error procesando pago exitoso via webhook:', processingError);
-                     // No fallar el webhook por errores de procesamiento interno
-                 }
-             } else {
-                 console.log(`⚠️ Pago con estado: ${paymentDetails.status} - No se procesa automáticamente`);
-             }
-
-        } catch (apiError) {
-             console.error('❌ Error obteniendo detalles del pago desde MP API:', apiError);
-         }
-     } else {
-        console.log(`📝 Notificación de tipo: ${type} - No es payment`);
-     }
-
-     // 6. RESPONDER SIEMPRE CON 200 (REQUERIDO POR MERCADOPAGO)
-     res.status(200).json({ 
-         success: true, 
-         message: 'Webhook procesado correctamente',
-         type: type,
-         data_id: data?.id,
-         timestamp: new Date().toISOString()
-     });
-
- } catch (error) {
-     console.error('❌ Error general en webhook:', error);
-     // Siempre responder con 200 para evitar reintentos innecesarios
-     res.status(200).json({ 
-         success: false, 
-         message: 'Webhook recibido con errores',
-         error: error.message
-     });
- }
-
-
-// Función para validar firma del webhook según documentación oficial
-
-}
-
-
-
-
-const validateWebhookSignature = (req, xSignature, xRequestId) => {
+// Función para guardar pago en la base de datos
+const guardarPago = async (paymentData, usuarioId, sessionId) => {
     try {
-        // Extraer el ID del recurso dependiendo del tipo de webhook
-        let dataId = '';
+        // Verificar si el pago ya existe para evitar duplicados
+        const pagoExistente = await Pago.findOne({ paymentId: paymentData.id.toString() });
         
-        // Para webhooks de tipo payment
-        if (req.query['data.id']) {
-            dataId = req.query['data.id'];
-        } 
-        // Para webhooks tipo merchant_order o payment que vienen con topic
-        else if (req.query.id) {
-            dataId = req.query.id;
+        if (pagoExistente) {
+            console.log('🔄 Actualizando pago existente:', paymentData.id);
+            
+            // Actualizar pago existente
+            const pagoActualizado = await Pago.findOneAndUpdate(
+                { paymentId: paymentData.id.toString() },
+                {
+                    status: paymentData.status,
+                    transactionAmount: paymentData.transaction_amount,
+                    dateLastUpdated: new Date(paymentData.date_last_updated),
+                    dateApproved: paymentData.date_approved ? new Date(paymentData.date_approved) : null,
+                    mercadoPagoData: paymentData,
+                    $push: {
+                        historial: {
+                            estado: paymentData.status,
+                            descripcion: `Estado actualizado via webhook`
+                        }
+                    }
+                },
+                { new: true }
+            );
+            
+            return pagoActualizado;
+        } else {
+            console.log('➕ Creando nuevo pago:', paymentData.id);
+            
+            // Crear nuevo pago
+            const nuevoPago = new Pago({
+                paymentId: paymentData.id.toString(),
+                status: paymentData.status,
+                transactionAmount: paymentData.transaction_amount,
+                externalReference: paymentData.external_reference,
+                
+                // Información del pagador
+                payer: {
+                    email: paymentData.payer?.email,
+                    identification: {
+                        type: paymentData.payer?.identification?.type,
+                        number: paymentData.payer?.identification?.number
+                    },
+                    phone: {
+                        area_code: paymentData.payer?.phone?.area_code,
+                        number: paymentData.payer?.phone?.number
+                    }
+                },
+                
+                // Método de pago
+                paymentMethodId: paymentData.payment_method_id,
+                paymentTypeId: paymentData.payment_type_id,
+                
+                // Fechas
+                dateCreated: new Date(paymentData.date_created),
+                dateApproved: paymentData.date_approved ? new Date(paymentData.date_approved) : null,
+                dateLastUpdated: paymentData.date_last_updated ? new Date(paymentData.date_last_updated) : null,
+                
+                // Usuario/sesión
+                usuario: usuarioId || null,
+                sessionId: sessionId || null,
+                
+                // Datos completos para auditoría
+                mercadoPagoData: paymentData,
+                
+                // Historial inicial
+                historial: [{
+                    estado: paymentData.status,
+                    descripcion: 'Pago recibido via webhook'
+                }]
+            });
+            
+            const pagoGuardado = await nuevoPago.save();
+            return pagoGuardado;
         }
-        // Para webhooks que vienen en el body
-        else if (req.body && req.body.data && req.body.data.id) {
-            dataId = req.body.data.id;
-        }
-
-        console.log('🔍 Datos para validación:', {
-            dataId,
-            xRequestId,
-            queryParams: req.query,
-            body: req.body
-        });
-
-        // Extraer ts y hash del x-signature
-        const parts = xSignature.split(',');
-        let ts = null;
-        let hash = null;
-
-        parts.forEach(part => {
-            const [key, value] = part.split('=');
-            if (key?.trim() === 'ts') ts = value?.trim();
-            if (key?.trim() === 'v1') hash = value?.trim();
-        });
-
-        if (!ts || !hash) {
-            throw new Error('Invalid x-signature format');
-        }
-
-        // Crear manifest según template oficial: id:dataId;request-id:requestId;ts:timestamp;
-        const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-
-        // Calcular HMAC SHA256 usando el ACCESS_TOKEN como secret
-        const secret = process.env.MERCADOPAGO_ACCESS_TOKEN;
-        const cyphedSignature = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
-
-        const isValid = cyphedSignature === hash;
-
-        console.log('🔐 Validación de firma:', {
-            manifest,
-            expected: hash,
-            calculated: cyphedSignature,
-            match: isValid,
-            dataId,
-            xRequestId,
-            ts
-        });
-
-        return isValid;
     } catch (error) {
-        console.error('❌ Error validando firma webhook:', error);
-        return false;
-    }
-};
-
-// Función para obtener detalles completos del pago desde MercadoPago API
-const getPaymentDetails = async (paymentId) => {
-    try {
-        console.log('🔍 Obteniendo detalles del pago:', paymentId);
-
-        // Usar la SDK de MercadoPago con el cliente configurado
-        const payment = new Payment(client);
-        const paymentData = await payment.get({ id: paymentId });
-        
-        console.log('✅ Detalles del pago obtenidos exitosamente');
-        return paymentData;
-    } catch (error) {
-        console.error('❌ Error obteniendo detalles del pago:', error);
+        console.error('❌ Error en guardarPago:', error);
         throw error;
     }
 };
+
+// Webhook para notificaciones de MercadoPago - IMPLEMENTACIÓN DIRECTA
+const webhook = async (req, res) => {
+    console.log('🔔 === WEBHOOK MERCADOPAGO RECIBIDO ===');
+    console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
+    console.log('🔗 Query params:', JSON.stringify(req.query, null, 2));
+
+    // Obtener el payment ID desde query params
+    const paymentId = req.query.id || req.query['data.id'] || req.body?.data?.id;
+    
+    if (!paymentId) {
+        console.log('⚠️ No se encontró payment ID en el webhook');
+        return res.sendStatus(200); // Responder 200 para evitar reintentos
+    }
+
+    try {
+        console.log('🔍 Obteniendo detalles del pago ID:', paymentId);
+        
+        // Hacer petición directa a la API de MercadoPago
+        const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`
+            }
+        });
+
+        if (response.ok) {
+            const paymentData = await response.json();
+            console.log('💳 Detalles del pago obtenidos:', {
+                id: paymentData.id,
+                status: paymentData.status,
+                transaction_amount: paymentData.transaction_amount,
+                external_reference: paymentData.external_reference,
+                payer_email: paymentData.payer?.email
+            });
+
+            // Extraer información del external_reference para todos los pagos
+            let usuarioId = null;
+            let sessionId = null;
+
+            if (paymentData.external_reference) {
+                try {
+                    const refData = JSON.parse(paymentData.external_reference);
+                    usuarioId = refData.usuario_id;
+                    sessionId = refData.session_id;
+                    console.log('📋 Datos extraídos del external_reference:', { usuarioId, sessionId });
+                } catch (e) {
+                    console.log('⚠️ No se pudo parsear external_reference:', paymentData.external_reference);
+                }
+            }
+
+            // 1. SIEMPRE GUARDAR EL PAGO EN LA BASE DE DATOS (cualquier estado)
+            try {
+                const pagoGuardado = await guardarPago(paymentData, usuarioId, sessionId);
+                console.log(`💾 Pago guardado en BD con estado: ${paymentData.status}, ID: ${pagoGuardado._id}`);
+            } catch (pagoError) {
+                console.error('❌ Error guardando pago en BD:', pagoError);
+                // Continuar aunque falle el guardado del pago
+            }
+
+            // 2. SOLO PROCESAR PEDIDO SI EL PAGO ES EXITOSO
+            if (paymentData.status === 'approved') {
+                console.log('✅ Pago aprobado, procesando pedido automáticamente...');
+
+                // Preparar datos para procesamiento del pedido
+                const paymentProcessData = {
+                    payment_id: paymentData.id,
+                    external_reference: paymentData.external_reference,
+                    usuario_id: usuarioId,
+                    session_id: sessionId,
+                    payer_email: paymentData.payer?.email,
+                    transaction_amount: paymentData.transaction_amount,
+                    payment_method_id: paymentData.payment_method_id,
+                    payment_type_id: paymentData.payment_type_id
+                };
+
+                try {
+                    const resultado = await procesarPagoExitoso(paymentProcessData);
+                    console.log('🎉 Pago procesado exitosamente via webhook:', resultado);
+                    
+                    // Actualizar el pago para asociarlo con el pedido creado
+                    try {
+                        await Pago.findOneAndUpdate(
+                            { paymentId: paymentData.id.toString() },
+                            { 
+                                pedido: resultado.pedidoId,
+                                procesado: true,
+                                $push: {
+                                    historial: {
+                                        estado: 'procesado',
+                                        descripcion: `Pedido creado: ${resultado.pedidoId}`
+                                    }
+                                }
+                            }
+                        );
+                        console.log('🔗 Pago asociado con pedido:', resultado.pedidoId);
+                    } catch (updateError) {
+                        console.error('⚠️ Error asociando pago con pedido:', updateError);
+                    }
+                } catch (processingError) {
+                    console.error('❌ Error procesando pago exitoso via webhook:', processingError);
+                    // Marcar el pago como fallido en el procesamiento
+                    try {
+                        await Pago.findOneAndUpdate(
+                            { paymentId: paymentData.id.toString() },
+                            {
+                                $push: {
+                                    historial: {
+                                        estado: 'error_procesamiento',
+                                        descripcion: `Error procesando pedido: ${processingError.message}`
+                                    }
+                                }
+                            }
+                        );
+                    } catch (updateError) {
+                        console.error('❌ Error actualizando historial de pago:', updateError);
+                    }
+                }
+            } else {
+                console.log(`⚠️ Pago con estado: ${paymentData.status} - Solo guardado en BD, no se crea pedido`);
+            }
+        } else {
+            console.error('❌ Error obteniendo pago de MercadoPago API:', response.status, response.statusText);
+        }
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('❌ Error obteniendo detalles del pago via webhook:', error);
+        res.sendStatus(200); // Responder 200 para evitar reintentos de MercadoPago
+    }
+};
+
+
+
+
+// Funciones auxiliares removidas - ahora usamos implementación directa con fetch
 
 // Verificar estado del pago
 const verificarEstado = async (req, res) => {
@@ -663,6 +643,7 @@ module.exports = {
     crearPreferencia,
     procesarResultado,
     procesarPagoExitoso,
+    guardarPago,
     webhook,
     verificarEstado,
     test
