@@ -1,4 +1,5 @@
-const { MercadoPagoConfig, Preference } = require('mercadopago');
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
+const crypto = require('crypto');
 const Pedido = require('../models/Pedido');
 const Producto = require('../models/Producto');
 const Carrito = require('../models/Carrito');
@@ -249,18 +250,26 @@ const webhook = async (req, res) => {
              const isValid = validateWebhookSignature(req, xSignature, xRequestId);
              if (!isValid) {
                  console.error('❌ Firma del webhook inválida');
-                return res.status(401).json({ error: 'Invalid signature' });
+                 // En desarrollo, continuamos procesando para debugging
+                 if (process.env.NODE_ENV === 'production') {
+                     return res.status(401).json({ error: 'Invalid signature' });
+                 } else {
+                     console.log('⚠️  DESARROLLO: Continuando a pesar de firma inválida...');
+                 }
+             } else {
+                 console.log('✅ Firma del webhook validada correctamente');
              }
-             console.log('✅ Firma del webhook validada correctamente');
          } catch (signatureError) {
              console.error('❌ Error validando firma:', signatureError);
              // Continuar sin validación en desarrollo
              if (process.env.NODE_ENV === 'production') {
                  return res.status(401).json({ error: 'Signature validation failed' });
+             } else {
+                 console.log('⚠️  DESARROLLO: Continuando a pesar de error de validación...');
              }
         }
      } else {
-         console.log('⚠️ Sin validación de firma (falta MERCADOPAGO_WEBHOOK_SECRET o x-signature)');
+         console.log('⚠️ Sin validación de firma (falta ACCESS_TOKEN o x-signature)');
     }
 
      // 2. PROCESAR NOTIFICACIÓN
@@ -356,38 +365,69 @@ const webhook = async (req, res) => {
 
 
 const validateWebhookSignature = (req, xSignature, xRequestId) => {
-    const dataId = req.query['data.id'] || '';
+    try {
+        // Extraer el ID del recurso dependiendo del tipo de webhook
+        let dataId = '';
+        
+        // Para webhooks de tipo payment
+        if (req.query['data.id']) {
+            dataId = req.query['data.id'];
+        } 
+        // Para webhooks tipo merchant_order o payment que vienen con topic
+        else if (req.query.id) {
+            dataId = req.query.id;
+        }
+        // Para webhooks que vienen en el body
+        else if (req.body && req.body.data && req.body.data.id) {
+            dataId = req.body.data.id;
+        }
 
-    // Extraer ts y hash del x-signature
-    const parts = xSignature.split(',');
-    let ts = null;
-    let hash = null;
+        console.log('🔍 Datos para validación:', {
+            dataId,
+            xRequestId,
+            queryParams: req.query,
+            body: req.body
+        });
 
-    parts.forEach(part => {
-        const [key, value] = part.split('=');
-        if (key?.trim() === 'ts') ts = value?.trim();
-        if (key?.trim() === 'v1') hash = value?.trim();
-    });
+        // Extraer ts y hash del x-signature
+        const parts = xSignature.split(',');
+        let ts = null;
+        let hash = null;
 
-    if (!ts || !hash) {
-        throw new Error('Invalid x-signature format');
+        parts.forEach(part => {
+            const [key, value] = part.split('=');
+            if (key?.trim() === 'ts') ts = value?.trim();
+            if (key?.trim() === 'v1') hash = value?.trim();
+        });
+
+        if (!ts || !hash) {
+            throw new Error('Invalid x-signature format');
+        }
+
+        // Crear manifest según template oficial: id:dataId;request-id:requestId;ts:timestamp;
+        const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+
+        // Calcular HMAC SHA256 usando el ACCESS_TOKEN como secret
+        const secret = process.env.MERCADOPAGO_ACCESS_TOKEN;
+        const cyphedSignature = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
+
+        const isValid = cyphedSignature === hash;
+
+        console.log('🔐 Validación de firma:', {
+            manifest,
+            expected: hash,
+            calculated: cyphedSignature,
+            match: isValid,
+            dataId,
+            xRequestId,
+            ts
+        });
+
+        return isValid;
+    } catch (error) {
+        console.error('❌ Error validando firma webhook:', error);
+        return false;
     }
-
-    // Crear manifest según template oficial
-    const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-
-    // Calcular HMAC SHA256
-    const secret = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    const cyphedSignature = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
-
-    console.log('🔐 Validación de firma:', {
-        manifest,
-        expected: hash,
-        calculated: cyphedSignature,
-        match: cyphedSignature === hash
-    });
-
-    return cyphedSignature === hash;
 };
 
 // Función para obtener detalles completos del pago desde MercadoPago API
@@ -395,13 +435,11 @@ const getPaymentDetails = async (paymentId) => {
     try {
         console.log('🔍 Obteniendo detalles del pago:', paymentId);
 
-        // Usar la SDK de MercadoPago en lugar de fetch
-        const { Payment } = require('mercadopago');
-        const payment = new Payment(mercadopagoClient);
-
+        // Usar la SDK de MercadoPago con el cliente configurado
+        const payment = new Payment(client);
         const paymentData = await payment.get({ id: paymentId });
+        
         console.log('✅ Detalles del pago obtenidos exitosamente');
-
         return paymentData;
     } catch (error) {
         console.error('❌ Error obteniendo detalles del pago:', error);
