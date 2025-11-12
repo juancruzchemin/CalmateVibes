@@ -4,6 +4,7 @@ const Pedido = require('../models/Pedido');
 const Producto = require('../models/Producto');
 const Carrito = require('../models/Carrito');
 const Usuario = require('../models/Usuario');
+const { response } = require('../server');
 
 // Inicializar el cliente de Mercado Pago con el token correcto
 const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
@@ -204,9 +205,6 @@ const procesarResultado = async (req, res) => {
         });
     }
 };
-
-const crypto = require('crypto');
-const { response } = require('../server');
 
 // Webhook para notificaciones de MercadoPago - IMPLEMENTACIÓN OFICIAL
 const webhook = async (req, res) => {
