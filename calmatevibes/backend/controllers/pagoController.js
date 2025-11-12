@@ -246,14 +246,20 @@ const guardarPago = async (paymentData, usuarioId, sessionId) => {
                 
                 // Información del pagador
                 payer: {
-                    email: paymentData.payer?.email,
-                    identification: {
-                        type: paymentData.payer?.identification?.type,
-                        number: paymentData.payer?.identification?.number
+                    email: paymentData.payer?.email || null,
+                    identification: paymentData.payer?.identification ? {
+                        type: paymentData.payer.identification.type || null,
+                        number: paymentData.payer.identification.number || null
+                    } : {
+                        type: null,
+                        number: null
                     },
-                    phone: {
-                        area_code: paymentData.payer?.phone?.area_code,
-                        number: paymentData.payer?.phone?.number
+                    phone: paymentData.payer?.phone ? {
+                        area_code: paymentData.payer.phone.area_code || null,
+                        number: paymentData.payer.phone.number || null
+                    } : {
+                        area_code: null,
+                        number: null
                     }
                 },
                 
@@ -291,7 +297,8 @@ const guardarPago = async (paymentData, usuarioId, sessionId) => {
 
 // Webhook para notificaciones de MercadoPago - IMPLEMENTACIÓN DIRECTA
 const webhook = async (req, res) => {
-    console.log('🔔 === WEBHOOK MERCADOPAGO RECIBIDO ===');
+    const webhookId = `WH_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`🔔 === WEBHOOK MERCADOPAGO RECIBIDO [${webhookId}] ===`);
     console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
     console.log('🔗 Query params:', JSON.stringify(req.query, null, 2));
 
@@ -299,12 +306,12 @@ const webhook = async (req, res) => {
     const paymentId = req.query.id || req.query['data.id'] || req.body?.data?.id;
     
     if (!paymentId) {
-        console.log('⚠️ No se encontró payment ID en el webhook');
+        console.log(`⚠️ [${webhookId}] No se encontró payment ID en el webhook`);
         return res.sendStatus(200); // Responder 200 para evitar reintentos
     }
 
     try {
-        console.log('🔍 Obteniendo detalles del pago ID:', paymentId);
+        console.log(`🔍 [${webhookId}] Obteniendo detalles del pago ID: ${paymentId}`);
         
         // Hacer petición directa a la API de MercadoPago
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {

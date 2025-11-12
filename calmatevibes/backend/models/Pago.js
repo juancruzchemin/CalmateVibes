@@ -32,8 +32,14 @@ const pagoSchema = new mongoose.Schema({
     payer: {
         email: String,
         identification: {
-            type: String,
-            number: String
+            type: {
+                type: String, // Tipo de documento (DNI, CUIL, etc.)
+                required: false
+            },
+            number: {
+                type: String, // Número del documento
+                required: false
+            }
         },
         phone: {
             area_code: String,
