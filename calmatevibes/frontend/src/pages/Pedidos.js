@@ -91,31 +91,35 @@ function Pedidos() {
         // Transformar datos para que coincidan con el formato esperado por los componentes
         const pedidosTransformados = response.data.map(pedido => ({
           id: pedido._id,
-          numero: pedido.numeroPedido,
-          cliente: {
-            nombre: `${pedido.usuario.nombre} ${pedido.usuario.apellido}`,
-            email: pedido.usuario.email,
-            telefono: pedido.usuario.telefono || 'No especificado'
+          numero: pedido.numeroPedido || 'Sin número',
+          cliente: pedido.usuario ? {
+            nombre: `${pedido.usuario.nombre || 'Usuario'} ${pedido.usuario.apellido || 'Invitado'}`,
+            email: pedido.usuario.email || pedido.datosContacto?.email || 'No especificado',
+            telefono: pedido.usuario.telefono || pedido.datosContacto?.telefono || 'No especificado'
+          } : {
+            nombre: `${pedido.datosContacto?.nombre || 'Usuario'} ${pedido.datosContacto?.apellido || 'Invitado'}`,
+            email: pedido.datosContacto?.email || 'No especificado',
+            telefono: pedido.datosContacto?.telefono || 'No especificado'
           },
-          productos: pedido.items.map(item => ({
-            id: item.producto,
-            nombre: item.nombre,
-            cantidad: item.cantidad,
-            precio: item.precioUnitario
-          })),
-          total: pedido.total,
-          estado: pedido.estado,
-          tipo: pedido.tipoEntrega || 'envio',
-          fechaPedido: new Date(pedido.fechaPedido).toISOString().split('T')[0],
+          productos: pedido.items?.map(item => ({
+            id: item.producto?._id || item.producto,
+            nombre: item.producto?.nombre || item.nombre || 'Producto sin nombre',
+            cantidad: item.cantidad || 0,
+            precio: item.precioUnitario || 0
+          })) || [],
+          total: pedido.total || 0,
+          estado: pedido.estado || 'pendiente',
+          tipo: pedido.envio?.tipo || pedido.tipoEntrega || 'envio_domicilio',
+          fechaPedido: pedido.createdAt ? new Date(pedido.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           fechaEntrega: pedido.fechaEntrega ? new Date(pedido.fechaEntrega).toISOString().split('T')[0] : null,
           direccionEnvio: pedido.direccionEnvio ? {
-            calle: `${pedido.direccionEnvio.calle} ${pedido.direccionEnvio.numero}`,
-            ciudad: pedido.direccionEnvio.ciudad,
-            provincia: pedido.direccionEnvio.provincia,
-            codigoPostal: pedido.direccionEnvio.codigoPostal
+            calle: `${pedido.direccionEnvio.calle || ''} ${pedido.direccionEnvio.numero || ''}`.trim() || 'No especificada',
+            ciudad: pedido.direccionEnvio.ciudad || 'No especificada',
+            provincia: pedido.direccionEnvio.provincia || 'No especificada',
+            codigoPostal: pedido.direccionEnvio.codigoPostal || 'No especificado'
           } : null,
-          tracking: pedido.tracking || null,
-          notas: pedido.observaciones || ''
+          tracking: pedido.envio?.numeroSeguimiento || pedido.tracking || null,
+          notas: pedido.notas?.admin || pedido.notas?.cliente || pedido.observaciones || ''
         }));
 
         setPedidos(pedidosTransformados);

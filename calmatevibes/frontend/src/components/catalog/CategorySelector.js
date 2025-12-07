@@ -182,7 +182,7 @@ function CategorySelector({ currentCategory }) {
                     onClick={handleShowAll}
                     disabled={!currentCategory || currentCategory === 'Todos'}
                   >
-                    <span className="category-option-name">📋 Ver todos</span>
+                    <span className="category-option-name">Ver todos</span>
                   </button>
                 </li>
 

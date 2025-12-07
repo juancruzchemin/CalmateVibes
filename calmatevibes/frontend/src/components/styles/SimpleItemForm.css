@@ -318,3 +318,125 @@
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
+
+/* ========== MATE CHARACTERISTICS ========== */
+
+.mate-characteristics {
+  background: linear-gradient(135deg, #f8faf9 0%, #f0f5f0 100%);
+}
+
+.mate-characteristics .form-section-subtitle {
+  margin: 1.5rem 0 1rem 0;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e0e7e0;
+}
+
+.mate-characteristics .form-section-subtitle h4 {
+  color: #52691a;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Toggle Switch para campos S�/No */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggle-switch input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  background-color: #ccc;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-inner {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.toggle-switch input[type="checkbox"]:checked + .toggle-label {
+  background-color: #52691a;
+}
+
+.toggle-switch input[type="checkbox"]:checked + .toggle-label .toggle-inner {
+  transform: translateX(30px);
+}
+
+.toggle-text {
+  font-weight: 600;
+  color: #333;
+  min-width: 30px;
+}
+
+/* Custom input para opciones adicionales */
+.custom-input-small {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border: 2px dashed #b8c9a0 !important;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-style: italic;
+  background-color: #f9fdf7;
+}
+
+.custom-input-small:focus {
+  border-color: #52691a !important;
+  background-color: white;
+  font-style: normal;
+}
+
+.custom-input-small::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* Campo de ayuda */
+.field-help {
+  color: #666;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Estilos mejorados para selects en mate */
+.mate-characteristics select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2352691a' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px;
+  padding-right: 2.5rem;
+}
+
+.mate-characteristics select:focus {
+  border-color: #52691a;
+  box-shadow: 0 0 0 3px rgba(82, 105, 26, 0.1);
+}
+
+/* Responsive para caracter�sticas de mate */
+@media (max-width: 768px) {
+  .mate-characteristics .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .toggle-switch {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}

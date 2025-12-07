@@ -1,16 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-
 import CarritoIcono from '../shared/CarritoIcono.js';
-
+import MobileMenu from './MobileMenu.js';
 import '../styles/Header.css';
 
 function Header() {
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const adminDropdownRef = useRef(null);
   const userDropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   const { isAuthenticated, user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
@@ -24,25 +25,53 @@ function Header() {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
         setUserDropdownOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        const hamburgerButton = document.querySelector('.hamburger-button');
+        if (hamburgerButton && !hamburgerButton.contains(event.target)) {
+          setMobileMenuOpen(false);
+        }
+      }
     };
 
-    if (adminDropdownOpen || userDropdownOpen) {
+    if (adminDropdownOpen || userDropdownOpen || mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [adminDropdownOpen, userDropdownOpen]);
+  }, [adminDropdownOpen, userDropdownOpen, mobileMenuOpen]);
+
+  // Prevenir scroll cuando el menú móvil está abierto
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.classList.add('mobile-menu-open');
+    } else {
+      document.body.classList.remove('mobile-menu-open');
+    }
+
+    return () => {
+      document.body.classList.remove('mobile-menu-open');
+    };
+  }, [mobileMenuOpen]);
 
   const handleLogout = () => {
     logout();
     setUserDropdownOpen(false);
+    setMobileMenuOpen(false);
     navigate('/');
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setAdminDropdownOpen(false);
   };
 
   return (
     <header className="header-main">
+      {/* Overlay para cuando el menú móvil está abierto */}
+      {mobileMenuOpen && <div className="mobile-overlay" onClick={closeMobileMenu}></div>}
+      
       <div className="header-container">
         {/* Logo */}
         <Link to="/" className="header-logo">
@@ -53,69 +82,21 @@ function Header() {
           />
         </Link>
 
-        {/* Navigation Links */}
-        <nav className="header-nav">
-          <Link to="/catalog" className="nav-link">Catálogo</Link>
-          <Link to="/care" className="nav-link">Cuidados</Link>
-          <Link to="/contact" className="nav-link">Contacto</Link>
-          <Link to="/mis-pedidos" className="nav-link">Mis Pedidos</Link>
+        {/* Mobile Menu Component */}
+        <MobileMenu
+          isOpen={mobileMenuOpen}
+          isAuthenticated={isAuthenticated}
+          user={user}
+          isAdmin={isAdmin}
+          adminDropdownOpen={adminDropdownOpen}
+          setAdminDropdownOpen={setAdminDropdownOpen}
+          adminDropdownRef={adminDropdownRef}
+          closeMobileMenu={closeMobileMenu}
+          handleLogout={handleLogout}
+          menuRef={mobileMenuRef}
+        />
 
-          {/* Admin Dropdown */}
-          {isAuthenticated && isAdmin && (
-            <div className="admin-dropdown" ref={adminDropdownRef}>
-              <button
-                className="nav-link admin-link dropdown-toggle"
-                onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
-                aria-label="Menú de administración"
-              >
-                Admin
-                <svg
-                  className={`dropdown-arrow ${adminDropdownOpen ? 'open' : ''}`}
-                  width="12"
-                  height="8"
-                  viewBox="0 0 12 8"
-                  fill="none"
-                >
-                  <path
-                    d="M1 1L6 6L11 1"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-
-              {adminDropdownOpen && (
-                <div className="admin-dropdown-menu">
-                  <Link
-                    to="/stock"
-                    className="admin-dropdown-item"
-                    onClick={() => setAdminDropdownOpen(false)}
-                  >
-                    Stock
-                  </Link>
-                  <Link
-                    to="/pedidos"
-                    className="admin-dropdown-item"
-                    onClick={() => setAdminDropdownOpen(false)}
-                  >
-                    Pedidos
-                  </Link>
-                  <Link
-                    to="/ventas"
-                    className="admin-dropdown-item"
-                    onClick={() => setAdminDropdownOpen(false)}
-                  >
-                    Ventas
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-        </nav>
-
-        {/* Right Section: User Icon and Cart */}
+        {/* Right Section: User Icon, Cart and Hamburger Menu */}
         <div className="header-right">
           {/* User Dropdown */}
           <div className="user-dropdown" ref={userDropdownRef}>
@@ -206,7 +187,20 @@ function Header() {
               </Link>
             )}
           </div>
+          
+          {/* Cart Icon */}
           <CarritoIcono />
+          
+          {/* Hamburger Menu Button */}
+          <button
+            className={`hamburger-button ${mobileMenuOpen ? 'open' : ''}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menú de navegación"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </div>
     </header>

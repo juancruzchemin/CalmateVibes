@@ -91,7 +91,7 @@ function Home() {
             style={{ animationDelay: '300ms' }}
           >
             <SectionDividerImage 
-              src="/divisor-beige.jpg" 
+              src="guarda.jpeg" 
               alt="Divisor decorativo animado - Separador de secciones" 
               height="50px" 
             />

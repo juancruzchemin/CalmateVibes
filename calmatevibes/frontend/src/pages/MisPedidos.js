@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import './styles/MisPedidos.css';
 
 function MisPedidos() {
+  const navigate = useNavigate();
   const { user, getAuthHeaders, isAuthenticated } = useAuth();
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedPedido, setSelectedPedido] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -55,11 +56,11 @@ function MisPedidos() {
             precio: item.precioUnitario,
             imagen: item.producto?.imagenes?.[0]?.url || item.imagen || '/placeholder.svg'
           })),
-          direccionEnvio: pedido.datosContacto?.direccion ? {
-            calle: pedido.datosContacto.direccion.calle,
-            ciudad: pedido.datosContacto.direccion.ciudad,
-            provincia: pedido.datosContacto.direccion.provincia,
-            codigoPostal: pedido.datosContacto.direccion.codigoPostal
+          direccionEnvio: pedido.direccionEnvio ? {
+            calle: pedido.direccionEnvio.calle || 'No especificada',
+            ciudad: pedido.direccionEnvio.ciudad || 'No especificada',
+            provincia: pedido.direccionEnvio.provincia || 'No especificada',
+            codigoPostal: pedido.direccionEnvio.codigoPostal || 'No especificado'
           } : null,
           tracking: pedido.envio?.numeroTracking || null,
           fechaEntrega: pedido.fechaEntrega || null,
@@ -308,7 +309,7 @@ function MisPedidos() {
                 <div className="pedido-actions">
                   <button 
                     className="btn-secondary"
-                    onClick={() => setSelectedPedido(pedido)}
+                    onClick={() => navigate(`/detalles/pedido/${pedido.id}`)}
                   >
                     <i className="bi bi-eye"></i>
                     Ver Detalles
@@ -331,132 +332,6 @@ function MisPedidos() {
           </div>
         )}
       </div>
-
-      {/* Modal de detalles */}
-      {selectedPedido && (
-        <div className="modal-overlay" onClick={() => setSelectedPedido(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Detalles del Pedido #{selectedPedido.numero}</h2>
-              <button 
-                className="modal-close"
-                onClick={() => setSelectedPedido(null)}
-              >
-                <i className="bi bi-x-lg"></i>
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="detail-section">
-                <h3>Estado del Pedido</h3>
-                <div 
-                  className="estado-badge"
-                  style={{ backgroundColor: getEstadoColor(selectedPedido.estado) }}
-                >
-                  <i className={`bi ${getEstadoIcon(selectedPedido.estado)}`}></i>
-                  {selectedPedido.estado.charAt(0).toUpperCase() + selectedPedido.estado.slice(1)}
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Información del Pedido</h3>
-                <div className="info-grid">
-                  <div className="info-item">
-                    <span className="label">Fecha:</span>
-                    <span>{formatDate(selectedPedido.fecha)}</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="label">Método de Pago:</span>
-                    <span>{selectedPedido.metodoPago}</span>
-                  </div>
-                  {selectedPedido.fechaEntrega && (
-                    <div className="info-item">
-                      <span className="label">Fecha de Entrega:</span>
-                      <span>{formatDate(selectedPedido.fechaEntrega)}</span>
-                    </div>
-                  )}
-                  {selectedPedido.fechaEntregaEstimada && !selectedPedido.fechaEntrega && (
-                    <div className="info-item">
-                      <span className="label">Entrega Estimada:</span>
-                      <span>{formatDate(selectedPedido.fechaEntregaEstimada)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Dirección de Envío</h3>
-                <div className="direccion-info">
-                  <p>{selectedPedido.direccionEnvio.calle}</p>
-                  <p>{selectedPedido.direccionEnvio.ciudad}, {selectedPedido.direccionEnvio.provincia}</p>
-                  <p>CP: {selectedPedido.direccionEnvio.codigoPostal}</p>
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Productos</h3>
-                <div className="productos-detalle">
-                  {selectedPedido.productos.map(producto => (
-                    <div key={producto.id} className="producto-detalle-item">
-                      <img 
-                        src={producto.imagen || '/placeholder.svg'} 
-                        alt={producto.nombre}
-                        onError={(e) => {
-                          e.target.src = '/placeholder.svg';
-                        }}
-                      />
-                      <div className="producto-detalle-info">
-                        <h4>{producto.nombre}</h4>
-                        <p>Cantidad: {producto.cantidad}</p>
-                        <p className="precio">{formatPrice(producto.precio)} c/u</p>
-                      </div>
-                      <div className="producto-total">
-                        {formatPrice(producto.precio * producto.cantidad)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>Resumen de Pago</h3>
-                <div className="pago-resumen">
-                  <div className="pago-item">
-                    <span>Subtotal:</span>
-                    <span>{formatPrice(selectedPedido.total - selectedPedido.envio)}</span>
-                  </div>
-                  <div className="pago-item">
-                    <span>Envío:</span>
-                    <span>{selectedPedido.envio > 0 ? formatPrice(selectedPedido.envio) : 'Gratis'}</span>
-                  </div>
-                  <div className="pago-item total">
-                    <span>Total:</span>
-                    <span>{formatPrice(selectedPedido.total)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {selectedPedido.tracking && (
-                <div className="detail-section">
-                  <h3>Información de Envío</h3>
-                  <div className="tracking-detail">
-                    <p><strong>Código de seguimiento:</strong> {selectedPedido.tracking}</p>
-                    <a 
-                      href={`https://www.correoargentino.com.ar/formularios/ondnc?codigo=${selectedPedido.tracking}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary"
-                    >
-                      <i className="bi bi-truck"></i>
-                      Rastrear en Correo Argentino
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

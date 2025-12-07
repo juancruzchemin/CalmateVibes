@@ -12,6 +12,7 @@ import ItemDetail from './pages/ItemDetail.js';
 import Stock from './pages/Stock.js';
 import Pedidos from './pages/Pedidos.js';
 import MisPedidos from './pages/MisPedidos.js';
+import Details from './pages/Details.js';
 import Ventas from './pages/Ventas.js';
 import Cart from './pages/Cart.js';
 import CrearItem from './pages/CrearItem.js';
@@ -87,6 +88,14 @@ const AppWithProviders = () => {
             element={
               <ProtectedRoute>
                 <MisPedidos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/detalles/:type/:id" 
+            element={
+              <ProtectedRoute>
+                <Details />
               </ProtectedRoute>
             } 
           />

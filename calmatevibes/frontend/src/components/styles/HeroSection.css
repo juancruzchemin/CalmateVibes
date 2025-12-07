@@ -1,41 +1,45 @@
 /* Hero Welcome Container */
 .hero-welcome-container {
   width: 100%;
-  padding: 2rem;
-  padding-top: 5rem;
-  background: #546911 ;
+  padding: 3rem 2rem;
+  padding-top: 6rem;
+  background: #546911;
   position: relative;
   overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
 }
 
 .hero-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 4rem;
-  height: 100%;
-  min-height: 60vh;
+  width: 100%;
 }
 
 /* Claim Section - Left Side */
 .hero-claim {
   flex: 1;
-  max-width: 500px;
+  max-width: 600px;
   color: white;
+  z-index: 2;
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-weight: 700;
   line-height: 1.1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   font-family: 'Arial', sans-serif;
 }
 
 .hero-accent {
   color: #f2ebda;
+  display: inline-block;
 }
 
 .special-m {
@@ -47,32 +51,33 @@
 }
 
 .hero-description {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 400px;
+  font-size: 1.25rem;
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+  color: rgba(255, 255, 255, 0.95);
+  max-width: 500px;
 }
 
 .hero-cta-button {
   background-color: #546911;
   color: #f2ebda;
   border: 2px solid #f2ebda;
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
+  padding: 1.125rem 3rem;
+  font-size: 1.125rem;
   font-weight: 600;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  display: inline-block;
 }
 
 .hero-cta-button:hover {
   background-color: #f2ebda;
   color: #546911;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(84, 105, 17, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(242, 235, 218, 0.4);
 }
 
 /* Image Section - Right Side */
@@ -82,12 +87,13 @@
   justify-content: center;
   align-items: center;
   position: relative;
+  z-index: 1;
 }
 
 .hero-circular-container {
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: 450px;
+  height: 450px;
 }
 
 .hero-circular-image {
@@ -96,7 +102,7 @@
   border-radius: 50%;
   overflow: hidden;
   border: 4px solid rgba(242, 235, 218, 0.4);
-  box-shadow: 0 20px 40px rgba(84, 105, 17, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .hero-main-image {
@@ -104,6 +110,11 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.hero-main-image:hover {
+  transform: scale(1.05);
 }
 
 /* Product Showcase */
@@ -165,23 +176,88 @@
 }
 
 /* Responsive Design */
+
+/* Desktop Large */
+@media (max-width: 1400px) {
+  .hero-welcome-container {
+    padding: 3rem 2rem;
+    padding-top: 5.5rem;
+  }
+
+  .hero-content {
+    gap: 3.5rem;
+  }
+
+  .hero-title {
+    font-size: 3.5rem;
+  }
+
+  .hero-circular-container {
+    width: 400px;
+    height: 400px;
+  }
+}
+
+/* Desktop Standard */
 @media (max-width: 1200px) {
+  .hero-welcome-container {
+    padding: 2.5rem 2rem;
+    padding-top: 5rem;
+  }
+
   .hero-content {
     gap: 3rem;
-    padding: 0 1rem;
   }
   
   .hero-title {
-    font-size: 3rem;
+    font-size: 3.25rem;
+  }
+
+  .hero-description {
+    font-size: 1.15rem;
   }
   
+  .hero-circular-container {
+    width: 380px;
+    height: 380px;
+  }
+}
+
+/* Tablet Large */
+@media (max-width: 1024px) {
+  .hero-welcome-container {
+    padding: 2.5rem 1.5rem;
+    padding-top: 5rem;
+    min-height: 90vh;
+  }
+
+  .hero-content {
+    gap: 2.5rem;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .hero-description {
+    font-size: 1.1rem;
+    max-width: 450px;
+  }
+
   .hero-circular-container {
     width: 350px;
     height: 350px;
   }
 }
 
+/* Tablet */
 @media (max-width: 900px) {
+  .hero-welcome-container {
+    padding: 2rem 1.5rem;
+    padding-top: 4.5rem;
+    min-height: 85vh;
+  }
+
   .hero-content {
     flex-direction: column;
     text-align: center;
@@ -189,16 +265,25 @@
   }
   
   .hero-claim {
-    max-width: 600px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   .hero-title {
-    font-size: 2.8rem;
+    font-size: 2.75rem;
+  }
+
+  .hero-description {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
   }
   
   .hero-circular-container {
-    width: 300px;
-    height: 300px;
+    width: 320px;
+    height: 320px;
   }
   
   .product-item {
@@ -207,17 +292,69 @@
   }
 }
 
+/* Tablet Small */
 @media (max-width: 768px) {
   .hero-welcome-container {
-    padding: 1.5rem;
-    min-height: 60vh;
+    padding: 2rem 1.25rem;
+    padding-top: 4rem;
+    min-height: 80vh;
+  }
+
+  .hero-content {
+    gap: 2.5rem;
   }
   
   .hero-title {
     font-size: 2.5rem;
+    margin-bottom: 1.5rem;
   }
   
   .hero-description {
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-cta-button {
+    padding: 1rem 2.25rem;
+    font-size: 1.05rem;
+  }
+  
+  .hero-circular-container {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .product-item {
+    width: 55px;
+    height: 55px;
+  }
+}
+
+/* Mobile Large */
+@media (max-width: 640px) {
+  .hero-welcome-container {
+    padding: 1.75rem 1rem;
+    padding-top: 3.5rem;
+    min-height: 75vh;
+  }
+
+  .hero-content {
+    gap: 2rem;
+  }
+  
+  .hero-title {
+    font-size: 2.25rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .hero-description {
+    font-size: 1rem;
+    margin-bottom: 1.75rem;
+    max-width: 500px;
+  }
+
+  .hero-cta-button {
+    padding: 0.9rem 2rem;
     font-size: 1rem;
   }
   
@@ -232,43 +369,73 @@
   }
 }
 
-@media (max-width: 600px) {
-  .hero-welcome-container {
-    padding: 1rem;
-    min-height: 55vh;
-  }
-  
-  .hero-content {
-    gap: 2rem;
-  }
-  
-  .hero-title {
-    font-size: 2.2rem;
-    margin-bottom: 1rem;
-  }
-  
-  .hero-description {
-    margin-bottom: 1.5rem;
-  }
-  
-  .hero-cta-button {
-    padding: 0.8rem 2rem;
-    font-size: 1rem;
-  }
-  
-  .hero-circular-container {
-    width: 250px;
-    height: 250px;
-  }
-}
-
+/* Mobile Standard */
 @media (max-width: 480px) {
   .hero-welcome-container {
-    min-height: 50vh;
+    padding: 1.5rem 0.875rem;
+    padding-top: 3rem;
+    min-height: 70vh;
+  }
+
+  .hero-content {
+    gap: 1.75rem;
   }
   
   .hero-title {
     font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-cta-button {
+    padding: 0.85rem 1.75rem;
+    font-size: 0.95rem;
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .hero-circular-container {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .product-item {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* Mobile Small */
+@media (max-width: 375px) {
+  .hero-welcome-container {
+    padding: 1.25rem 0.75rem;
+    padding-top: 2.75rem;
+    min-height: 65vh;
+  }
+
+  .hero-content {
+    gap: 1.5rem;
+  }
+  
+  .hero-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.875rem;
+  }
+  
+  .hero-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-cta-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
   }
   
   .hero-circular-container {
@@ -282,11 +449,68 @@
   }
 }
 
-@media (max-width: 360px) {
-  .hero-title {
-    font-size: 1.8rem;
+/* Mobile Extra Small */
+@media (max-width: 320px) {
+  .hero-welcome-container {
+    padding: 1rem 0.625rem;
+    padding-top: 2.5rem;
+    min-height: 60vh;
+  }
+
+  .hero-content {
+    gap: 1.25rem;
   }
   
+  .hero-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .hero-description {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin-bottom: 1rem;
+  }
+
+  .hero-cta-button {
+    padding: 0.7rem 1.25rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .hero-circular-container {
+    width: 190px;
+    height: 190px;
+  }
+  
+  .product-item {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* Landscape orientation */
+@media (max-height: 600px) and (orientation: landscape) {
+  .hero-welcome-container {
+    min-height: auto;
+    padding: 2rem 1.5rem;
+    padding-top: 4rem;
+  }
+
+  .hero-content {
+    gap: 2rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
   .hero-circular-container {
     width: 200px;
     height: 200px;

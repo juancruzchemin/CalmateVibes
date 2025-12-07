@@ -83,6 +83,94 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
         )}
       </div>
 
+      {/* Productos */}
+      <div className="detail-section">
+        <h3>
+          <i className="bi bi-box-fill"></i>
+          Productos ({pedido.productos.length})
+        </h3>
+        <div className="productos-list">
+          {pedido.productos.map((producto, index) => (
+            <div key={index} className="producto-item">
+              <div className="producto-info">
+                <span className="producto-nombre">{producto.nombre}</span>
+                <span className="producto-cantidad">Cantidad: {producto.cantidad}</span>
+              </div>
+              <div className="producto-precio">
+                <span className="precio-unitario">
+                  {formatMonto(producto.precio)} c/u
+                </span>
+                <span className="precio-total">
+                  {formatMonto(producto.precio * producto.cantidad)}
+                </span>
+              </div>
+            </div>
+          ))}
+          <div className="productos-total">
+            <strong>Total: {formatMonto(pedido.total)}</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* Información del cliente */}
+      <div className="detail-section">
+        <h3>
+          <i className="bi bi-person-fill"></i>
+          Información del Cliente
+        </h3>
+        <div className="cliente-details">
+          <div className="info-row">
+            <span className="label">Nombre:</span>
+            <span className="value">{pedido.cliente.nombre}</span>
+          </div>
+          <div className="info-row">
+            <span className="label">Email:</span>
+            <span className="value">
+              <a href={`mailto:${pedido.cliente.email}`}>
+                {pedido.cliente.email}
+              </a>
+            </span>
+          </div>
+          <div className="info-row">
+            <span className="label">Teléfono:</span>
+            <span className="value">
+              <a href={`tel:${pedido.cliente.telefono}`}>
+                {pedido.cliente.telefono}
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>     
+
+      {/* Dirección de envío */}
+      {pedido.direccionEnvio && (
+        <div className="detail-section">
+          <h3>
+            <i className="bi bi-geo-alt-fill"></i>
+            Dirección de Envío
+          </h3>
+          <div className="direccion-details">
+            <div className="direccion-completa">
+              <p>{pedido.direccionEnvio.calle}</p>
+              <p>
+                {pedido.direccionEnvio.ciudad}, {pedido.direccionEnvio.provincia}
+              </p>
+              <p>CP: {pedido.direccionEnvio.codigoPostal}</p>
+            </div>
+            <button
+              className="btn btn-map"
+              onClick={() => {
+                const direccion = `${pedido.direccionEnvio.calle}, ${pedido.direccionEnvio.ciudad}, ${pedido.direccionEnvio.provincia}`;
+                window.open(`https://maps.google.com/?q=${encodeURIComponent(direccion)}`, '_blank');
+              }}
+            >
+              <i className="bi bi-map"></i>
+              Ver en Maps
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="detail-content">
         {/* Fechas importantes */}
         <div className="detail-section">
@@ -181,67 +269,9 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
             >
               <i className="bi bi-whatsapp"></i>
               Contactar
-            </button> 
+            </button>
           </div>
         </div>
-
-        {/* Productos */}
-        <div className="detail-section">
-          <h3>
-            <i className="bi bi-box-fill"></i>
-            Productos ({pedido.productos.length})
-          </h3>
-          <div className="productos-list">
-            {pedido.productos.map((producto, index) => (
-              <div key={index} className="producto-item">
-                <div className="producto-info">
-                  <span className="producto-nombre">{producto.nombre}</span>
-                  <span className="producto-cantidad">Cantidad: {producto.cantidad}</span>
-                </div>
-                <div className="producto-precio">
-                  <span className="precio-unitario">
-                    {formatMonto(producto.precio)} c/u
-                  </span>
-                  <span className="precio-total">
-                    {formatMonto(producto.precio * producto.cantidad)}
-                  </span>
-                </div>
-              </div>
-            ))}
-            <div className="productos-total">
-              <strong>Total: {formatMonto(pedido.total)}</strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Dirección de envío */}
-        {pedido.direccionEnvio && (
-          <div className="detail-section">
-            <h3>
-              <i className="bi bi-geo-alt-fill"></i>
-              Dirección de Envío
-            </h3>
-            <div className="direccion-details">
-              <div className="direccion-completa">
-                <p>{pedido.direccionEnvio.calle}</p>
-                <p>
-                  {pedido.direccionEnvio.ciudad}, {pedido.direccionEnvio.provincia}
-                </p>
-                <p>CP: {pedido.direccionEnvio.codigoPostal}</p>
-              </div>
-              <button
-                className="btn btn-map"
-                onClick={() => {
-                  const direccion = `${pedido.direccionEnvio.calle}, ${pedido.direccionEnvio.ciudad}, ${pedido.direccionEnvio.provincia}`;
-                  window.open(`https://maps.google.com/?q=${encodeURIComponent(direccion)}`, '_blank');
-                }}
-              >
-                <i className="bi bi-map"></i>
-                Ver en Maps
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Notas */}
         {pedido.notas && (
@@ -266,35 +296,7 @@ function PedidoDetail({ pedido, onStatusUpdate, onOpenTracking, onOpenShipping }
           </div>
         )}
 
-        {/* Información del cliente */}
-        <div className="detail-section">
-          <h3>
-            <i className="bi bi-person-fill"></i>
-            Información del Cliente
-          </h3>
-          <div className="cliente-details">
-            <div className="info-row">
-              <span className="label">Nombre:</span>
-              <span className="value">{pedido.cliente.nombre}</span>
-            </div>
-            <div className="info-row">
-              <span className="label">Email:</span>
-              <span className="value">
-                <a href={`mailto:${pedido.cliente.email}`}>
-                  {pedido.cliente.email}
-                </a>
-              </span>
-            </div>
-            <div className="info-row">
-              <span className="label">Teléfono:</span>
-              <span className="value">
-                <a href={`tel:${pedido.cliente.telefono}`}>
-                  {pedido.cliente.telefono}
-                </a>
-              </span>
-            </div>
-          </div>
-        </div>
+
 
       </div>
 

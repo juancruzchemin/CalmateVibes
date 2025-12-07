@@ -27,7 +27,8 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
     setCurrentPage(1);
 
     const cantidadesIniciales = catalogo.items.reduce((acc, item) => {
-      acc[item.id] = 1;
+      const itemKey = item._id || item.id;
+      acc[itemKey] = 1;
       return acc;
     }, {});
     setCantidades(cantidadesIniciales);
@@ -41,8 +42,18 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
     setCurrentPage(pageNumber);
   };
 
-  const handleItemClick = (itemId) => {
-    navigate(`/item/${catalogo.nombre}/${itemId}`);
+  const handleItemClick = (itemId, itemCategoria) => {
+    // Asegurarse de que itemId sea válido antes de navegar
+    if (!itemId) {
+      console.error('itemId no definido');
+      return;
+    }
+    
+    // Usar la categoría del item en lugar del catálogo cuando estamos en "todos"
+    const categoria = catalogo.nombre === 'todos' ? itemCategoria : catalogo.nombre;
+    
+    console.log('Navegando a:', `/item/${categoria}/${itemId}`);
+    navigate(`/item/${categoria}/${itemId}`);
   };
 
   const handleCantidadChange = (itemId, nuevaCantidad) => {
@@ -159,7 +170,7 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
             <div
               className="catalogo-item"
               key={idx}
-              onMouseEnter={() => handleMouseEnter(item.id)}
+              onMouseEnter={() => handleMouseEnter(item._id || item.id)}
               onMouseLeave={handleMouseLeave}
             >
               {/* Badge de estado */}
@@ -172,11 +183,11 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
               {/* Container de imagen */}
               <div 
                 className="catalogo-item-image-container"
-                onClick={() => handleItemClick(item.id)}
+                onClick={() => handleItemClick(item._id || item.id, item.categoria)}
               >
                 <img
                   src={
-                    hoveredItemId === item.id && item.imagenHover 
+                    hoveredItemId === (item._id || item.id) && item.imagenHover 
                       ? item.imagenHover 
                       : (item.imagenes?.[0]?.url || item.imagen || '/placeholder.svg')
                   }
@@ -195,7 +206,7 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
                 </div>
 
                 {/* Nombre del producto */}
-                <h3 className="catalogo-item-title" onClick={() => handleItemClick(item.id)}>
+                <h3 className="catalogo-item-title" onClick={() => handleItemClick(item._id || item.id, item.categoria)}>
                   {item.nombre}
                 </h3>
 
@@ -224,14 +235,14 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
                 <div className="quantity-controls">
                   <button 
                     className="quantity-btn"
-                    onClick={() => handleCantidadChange(item.id, Math.max(1, cantidades[item.id] - 1))}
+                    onClick={() => handleCantidadChange(item._id || item.id, Math.max(1, cantidades[item._id || item.id] - 1))}
                   >
                     -
                   </button>
-                  <span className="quantity-display">{cantidades[item.id] || 1}</span>
+                  <span className="quantity-display">{cantidades[item._id || item.id] || 1}</span>
                   <button 
                     className="quantity-btn"
-                    onClick={() => handleCantidadChange(item.id, cantidades[item.id] + 1)}
+                    onClick={() => handleCantidadChange(item._id || item.id, cantidades[item._id || item.id] + 1)}
                   >
                     +
                   </button>

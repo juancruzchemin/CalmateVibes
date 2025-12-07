@@ -46,10 +46,22 @@ function ItemDetail() {
     return <p>El catálogo no está disponible.</p>;
   }
 
-  const item = catalogo.items.find((item) => item.id === itemId);
+  // Buscar el item comparando como strings para evitar problemas de tipo
+  const item = catalogo.items.find((item) => String(item.id) === String(itemId) || String(item._id) === String(itemId));
 
   if (!item) {
-    return <p>Item no encontrado.</p>;
+    console.log('Item no encontrado. itemId:', itemId);
+    console.log('Items disponibles:', catalogo.items.map(i => ({ id: i.id, _id: i._id, nombre: i.nombre })));
+    return (
+      <div className="item-detail-page">
+        <Header carrito={carrito} userRole="client" />
+        <div className="item-not-found">
+          <h2>Producto no encontrado</h2>
+          <p>El producto que buscas no está disponible.</p>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   const handleAgregarAlCarrito = () => {
