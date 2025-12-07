@@ -5,18 +5,16 @@
   overflow: hidden;
   display: flex;
   align-items: center;
-  position: relative;
+  justify-content: flex-start;
   margin: 2rem 0;
-  background: transparent;
 }
 
 /* Wrapper para las imágenes */
 .section-divider-wrapper {
   display: flex;
-  gap: 0; /* Sin espacios entre imágenes */
-  animation: scroll-infinite 30s linear infinite;
-  will-change: transform;
-  flex-shrink: 0;
+  gap: 2rem;
+  animation: scroll-infinite 40s linear infinite;
+  white-space: nowrap;
 }
 
 /* Estilo de las imágenes */
@@ -24,134 +22,48 @@
   height: 100%;
   width: auto;
   object-fit: cover;
-  display: block;
-  flex-shrink: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-/* Animación para el efecto infinito seamless */
+/* Animación para el efecto infinito */
 @keyframes scroll-infinite {
-  0% {
+  from {
     transform: translateX(0);
   }
-  100% {
-    transform: translateX(-50%);
+  to {
+    transform: translateX(-50%); /* Solo la mitad ya que tenemos duplicados */
   }
 }
 
-/* Pausar animación al hover (opcional) */
-.section-divider-container:hover .section-divider-wrapper {
-  animation-play-state: paused;
-}
-
-/* Desktop Large */
-@media (min-width: 1400px) {
-  .section-divider-container {
-    height: 150px;
-    margin: 3rem 0;
-  }
-}
-
-/* Desktop Standard */
-@media (max-width: 1200px) {
-  .section-divider-container {
-    height: 120px;
-    margin: 2.5rem 0;
-  }
-}
-
-/* Tablet */
-@media (max-width: 900px) {
-  .section-divider-container {
-    height: 100px;
-    margin: 2rem 0;
-  }
-
-  .section-divider-wrapper {
-    animation-duration: 35s;
-  }
-}
-
-/* Tablet */
-@media (max-width: 900px) {
-  .section-divider-container {
-    height: 100px;
-    margin: 2rem 0;
-  }
-
-  .section-divider-wrapper {
-    animation-duration: 35s;
-  }
-}
-
-/* Tablet Small */
+/* Responsividad */
 @media (max-width: 768px) {
   .section-divider-container {
-    height: 90px;
-    margin: 1.75rem 0;
-  }
-
-  .section-divider-wrapper {
-    animation-duration: 40s;
-  }
-}
-
-/* Mobile Large */
-@media (max-width: 640px) {
-  .section-divider-container {
-    height: 80px;
+    height: 100%;
     margin: 1.5rem 0;
   }
 
+  .section-divider-image {
+    height: 100%;
+  }
+
   .section-divider-wrapper {
-    animation-duration: 45s;
+    gap: 1.5rem;
+    animation-duration: 100s;
   }
 }
 
-/* Mobile Standard */
 @media (max-width: 480px) {
   .section-divider-container {
-    height: 70px;
-    margin: 1.25rem 0;
-  }
-
-  .section-divider-wrapper {
-    animation-duration: 50s;
-  }
-}
-
-/* Mobile Small */
-@media (max-width: 375px) {
-  .section-divider-container {
-    height: 60px;
+    height: 100%;
     margin: 1rem 0;
   }
 
-  .section-divider-wrapper {
-    animation-duration: 55s;
-  }
-}
-
-/* Mobile Extra Small */
-@media (max-width: 320px) {
-  .section-divider-container {
-    height: 50px;
-    margin: 0.75rem 0;
+  .section-divider-image {
+    height: 100%;
   }
 
   .section-divider-wrapper {
-    animation-duration: 60s;
-  }
-}
-
-/* Optimización para dispositivos con movimiento reducido */
-@media (prefers-reduced-motion: reduce) {
-  .section-divider-wrapper {
-    animation: none;
+    gap: 1rem;
+    animation-duration: 100s;
   }
 }
