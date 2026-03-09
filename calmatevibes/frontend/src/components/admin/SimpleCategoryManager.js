@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import OffersManager from './OffersManager';
-import '../styles/SimpleCategoryManager.css';
+import '../../components/styles/SimpleCategoryManager.css';
 import '../styles/Tienda.css';
 
 function SimpleCategoryManager({
@@ -11,6 +12,7 @@ function SimpleCategoryManager({
   offers,
   setOffers
 }) {
+  const navigate = useNavigate();
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryImage, setNewCategoryImage] = useState('');
@@ -197,15 +199,17 @@ function SimpleCategoryManager({
           <div className="category-overlay"></div>
           <div className="category-actions-overlay">
             <button
-              onClick={() => setShowOffersManager(true)}
+              onClick={() => navigate('/manage-offers')}
               className="btn-edit-category-overlay"
               title="Gestionar ofertas"
             >
               ⚙️
             </button>
           </div>
-          <h3>🏷️ Ofertas</h3>
-          <div className="category-count-overlay">
+          <h3 onClick={() => navigate('/manage-offers')} style={{ cursor: 'pointer' }}>
+            🏷️ Ofertas
+          </h3>
+          <div className="category-count-overlay" onClick={() => navigate('/manage-offers')} style={{ cursor: 'pointer' }}>
             📊 {offers?.length || 0} ofertas
           </div>
         </div>

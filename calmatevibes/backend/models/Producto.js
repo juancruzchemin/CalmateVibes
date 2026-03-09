@@ -189,6 +189,29 @@ const ProductoSchema = new mongoose.Schema({
   slug: {
     type: String,
     unique: true
+  },
+  // Campos para ofertas
+  ofertaActiva: {
+    type: Boolean,
+    default: false
+  },
+  precioDescuento: {
+    type: Number,
+    default: null,
+    min: [0, 'El precio de descuento no puede ser negativo']
+  },
+  tipoDescuento: {
+    type: String,
+    enum: ['porcentaje', 'precioFijo'],
+    default: 'porcentaje'
+  },
+  tiempoOferta: {
+    type: Date,
+    default: null // null significa sin fecha límite
+  },
+  descuentoCategoria: {
+    type: Boolean,
+    default: false // true si el descuento aplica a la categoría completa
   }
 }, {
   timestamps: true,

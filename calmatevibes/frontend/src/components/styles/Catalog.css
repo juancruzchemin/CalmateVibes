@@ -90,6 +90,83 @@
   line-height: 1.2;
 }
 
+/* Estilos de ofertas */
+.price-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.price-original {
+  font-size: 0.9rem;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+.price-oferta {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #d32f2f;
+}
+
+.discount-badge {
+  background: #d32f2f;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.product-badge.oferta {
+  background: linear-gradient(135deg, #F5EE29 0%, #F5EE29 100%);
+  color: white;
+  -webkit-text-fill-color: #000;
+  font-weight: 700;
+}
+
+@keyframes pulse-price {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Contador de tiempo de oferta */
+.offer-countdown {
+  font-size: 0.85rem;
+  color: #ff6b35;
+  font-weight: 600;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: pulse-countdown 2s ease-in-out infinite;
+}
+
+@keyframes pulse-countdown {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 /* Información del producto */
 .catalogo-item-info {
   flex: 1;

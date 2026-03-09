@@ -9,6 +9,29 @@ import MobileFilters from './MobileFilters.js';
 import { useCarrito } from '../../context/CarritoContext.js';
 import '../styles/Catalog.css';
 
+// Función para calcular el tiempo restante de la oferta
+const calcularTiempoRestante = (tiempoOferta) => {
+  if (!tiempoOferta) return null;
+  
+  const ahora = new Date();
+  const fin = new Date(tiempoOferta);
+  const diferencia = fin - ahora;
+  
+  if (diferencia <= 0) return 'Oferta finalizada';
+  
+  const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+  const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (dias > 0) {
+    return `Termina en ${dias} día${dias > 1 ? 's' : ''}`;
+  } else if (horas > 0) {
+    return `Termina en ${horas} hora${horas > 1 ? 's' : ''}`;
+  } else {
+    return `Termina en ${minutos} minuto${minutos > 1 ? 's' : ''}`;
+  }
+};
+
 function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onItemsChange }) {
   const [items, setItems] = useState(catalogo.items);
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,9 +40,19 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
   const [notificationMessage, setNotificationMessage] = useState('');
   const [hoveredItemId, setHoveredItemId] = useState(null); // Estado para manejar el hover
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false); // Estado para el sidebar móvil
+  const [tiempoActual, setTiempoActual] = useState(Date.now()); // Para actualizar el contador
   const itemsPerPage = 6;
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCarrito();
+
+  // Actualizar el tiempo cada minuto para las ofertas con límite de tiempo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTiempoActual(Date.now());
+    }, 60000); // Actualizar cada minuto
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const itemsToShow = filteredItems.length > 0 ? filteredItems : catalogo.items;
@@ -173,8 +206,15 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
               onMouseEnter={() => handleMouseEnter(item._id || item.id)}
               onMouseLeave={handleMouseLeave}
             >
+              {/* Badge de oferta */}
+              {item.ofertaActiva && (
+                <div className="product-badge oferta">
+                  🔥 OFERTA
+                </div>
+              )}
+
               {/* Badge de estado */}
-              {item.estado && (
+              {item.estado && !item.ofertaActiva && (
                 <div className={`product-badge ${item.estado.toLowerCase().replace(' ', '-')}`}>
                   {item.estado}
                 </div>
@@ -202,8 +242,32 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
               <div className="catalogo-item-info">
                 {/* Precio */}
                 <div className="catalogo-item-price">
-                  ${item.precioVenta}
+                  {item.ofertaActiva ? (
+                    <div className="price-container">
+                      <span className="price-oferta">
+                        ${item.tipoDescuento === 'porcentaje' 
+                          ? (item.precioVenta * (1 - item.precioDescuento / 100)).toFixed(0)
+                          : item.precioDescuento
+                        }
+                      </span>
+                      <span className="price-original">${item.precioVenta}</span>
+                      {item.tipoDescuento === 'porcentaje' && (
+                        <span className="discount-badge">
+                          -{item.precioDescuento}%
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    `$${item.precioVenta}`
+                  )}
                 </div>
+
+                {/* Tiempo restante de la oferta */}
+                {item.ofertaActiva && item.tiempoOferta && (
+                  <div className="offer-countdown">
+                    ⏱️ {calcularTiempoRestante(item.tiempoOferta)}
+                  </div>
+                )}
 
                 {/* Nombre del producto */}
                 <h3 className="catalogo-item-title" onClick={() => handleItemClick(item._id || item.id, item.categoria)}>

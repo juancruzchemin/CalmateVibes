@@ -36,6 +36,7 @@ app.use('/api/pedidos', require('./routes/pedidos'));
 app.use('/api/carritos', require('./routes/carritos'));
 app.use('/api/envios', require('./routes/envios'));
 app.use('/api/pagos', require('./routes/pagos')); // Nueva ruta para MercadoPago
+app.use('/api/ofertas', require('./routes/ofertas')); // Nueva ruta para Ofertas
 
 // Manejo de errores 404
 app.use('*', (req, res) => {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/OffersManager.css';
 
 function OffersManager({ 
-  catalogos, 
+  catalogos = [], 
   ofertas = [], 
   onAddOferta, 
   onEditOferta, 
@@ -90,6 +90,9 @@ function OffersManager({
   };
 
   const getAllProducts = () => {
+    if (!Array.isArray(catalogos)) {
+      return [];
+    }
     return catalogos.flatMap(catalogo => 
       (catalogo.items || []).map(item => ({
         ...item,

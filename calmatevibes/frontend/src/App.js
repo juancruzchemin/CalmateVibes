@@ -16,6 +16,7 @@ import Details from './pages/Details.js';
 import Ventas from './pages/Ventas.js';
 import Cart from './pages/Cart.js';
 import CrearItem from './pages/CrearItem.js';
+import OfferManagementPage from './pages/OfferManagementPage.js';
 import PaymentSuccess from './pages/PaymentSuccess.js';
 import PaymentFailure from './pages/PaymentFailure.js';
 import PaymentPending from './pages/PaymentPending.js';
@@ -138,6 +139,14 @@ const AppWithProviders = () => {
             element={
               <ProtectedRoute requireAdmin={true}>
                 <CrearItem onAddItem={handleAddItem} />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/manage-offers" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <OfferManagementPage catalogos={catalogos} />
               </ProtectedRoute>
             } 
           />

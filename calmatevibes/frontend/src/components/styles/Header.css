@@ -7,7 +7,6 @@
   z-index: 1000;
   background-color: #52691a;
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Contenedor del Header */
