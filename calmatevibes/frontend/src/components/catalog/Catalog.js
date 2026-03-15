@@ -227,9 +227,15 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
               >
                 <img
                   src={
-                    hoveredItemId === (item._id || item.id) && item.imagenHover 
-                      ? item.imagenHover 
-                      : (item.imagenes?.[0]?.url || item.imagen || '/placeholder.svg')
+                    hoveredItemId === (item._id || item.id) && 
+                    ((item.imagenes && item.imagenes.length > 1) || item.imagenHover)
+                      ? (
+                          // Priorizar el array de imágenes si tiene más de una
+                          item.imagenes && item.imagenes.length > 1 
+                            ? item.imagenes[1].url || item.imagenes[1]
+                            : item.imagenHover
+                        )
+                      : (item.imagenes?.[0]?.url || item.imagenes?.[0] || item.imagen || '/placeholder.svg')
                   }
                   alt={item.nombre}
                   className="catalogo-item-image"

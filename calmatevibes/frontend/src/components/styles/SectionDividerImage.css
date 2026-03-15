@@ -23,6 +23,8 @@
   width: auto;
   object-fit: cover;
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+  position: relative;
+  z-index: 9999;
 }
 
 /* Animación para el efecto infinito */

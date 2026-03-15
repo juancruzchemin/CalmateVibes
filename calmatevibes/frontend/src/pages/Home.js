@@ -105,7 +105,7 @@ function Home() {
             <CuradosBanner
               title="Cuidados del Mate"
               text="Te recomendamos cómo cuidar y mantener tu mate para disfrutarlo por más tiempo."
-              imageUrl="/javi-mate.jpeg"
+              imageUrl="/Necesito_crear_una_imagen_para_un_banner_de_una_pa-removebg-preview.png"
             />
           </div>
 

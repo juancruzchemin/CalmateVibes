@@ -62,12 +62,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
   display: block;
-}
-
-.catalogo-item:hover .catalogo-item-image {
-  transform: scale(1.02);
 }
 
 /* Contenido del producto */
@@ -628,7 +623,6 @@
   
   .catalogo-item:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: none;
   }
   
   /* Imagen del producto optimizada para móvil */
