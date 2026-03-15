@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import Footer from '../components/layout/Footer';
 import Header from '../components/layout/Header';
+import CuidadosList from '../components/care/CuidadosList';
 import { CarritoContext } from '../context/CarritoContext.js';
 
 import './styles/Cuidados.css';
@@ -21,7 +22,7 @@ function Cuidados() {
       </div>
 
       <div className="cuidados-content">
-        {/* Aquí va el contenido adicional de la página */}
+        <CuidadosList />
       </div>
       
       <Footer />
