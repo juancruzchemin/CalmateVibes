@@ -9,7 +9,7 @@ function Login() {
     email: '',
     password: ''
   });
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [currentView, setCurrentView] = useState('login'); // 'login' | 'register' | 'forgot'
   const [registerData, setRegisterData] = useState({
     nombre: '',
     apellido: '',
@@ -17,6 +17,11 @@ function Login() {
     password: '',
     confirmPassword: ''
   });
+
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
 
   const { login, register, isAuthenticated, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
@@ -30,10 +35,11 @@ function Login() {
     }
   }, [isAuthenticated, navigate, location]);
 
-  // Limpiar errores al cambiar de formulario
+  // Limpiar errores al cambiar de vista
   useEffect(() => {
     clearError();
-  }, [isRegistering, clearError]);
+    setForgotError('');
+  }, [currentView, clearError]);
 
   const handleLoginChange = (e) => {
     setFormData({
@@ -47,6 +53,29 @@ function Login() {
       ...registerData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError('');
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/usuarios/solicitar-reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setForgotSuccess(true);
+      } else {
+        setForgotError(data.message || 'Error al enviar el email. Intentá de nuevo.');
+      }
+    } catch (err) {
+      setForgotError('Error de conexión. Verificá tu internet e intentá de nuevo.');
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   const handleLoginSubmit = async (e) => {
@@ -112,20 +141,20 @@ function Login() {
         {/* Tabs */}
         <div className="login-tabs">
           <button
-            className={`tab ${!isRegistering ? 'active' : ''}`}
-            onClick={() => setIsRegistering(false)}
+            className={`tab ${currentView === 'login' ? 'active' : ''}`}
+            onClick={() => setCurrentView('login')}
           >
             Iniciar Sesión
           </button>
           <button
-            className={`tab ${isRegistering ? 'active' : ''}`}
-            onClick={() => setIsRegistering(true)}
+            className={`tab ${currentView === 'register' ? 'active' : ''}`}
+            onClick={() => setCurrentView('register')}
           >
             Registrarse
           </button>
         </div>
 
-        {!isRegistering ? (
+        {currentView === 'login' && (
           // Formulario de Login
           <form onSubmit={handleLoginSubmit} className="login-form">
             <h2>Iniciar Sesión</h2>
@@ -156,6 +185,12 @@ function Login() {
               />
             </div>
 
+            <div className="forgot-password-link">
+              <button type="button" onClick={() => setCurrentView('forgot')}>
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
+
             <button
               type="submit"
               className="submit-btn"
@@ -164,7 +199,9 @@ function Login() {
               {loading ? 'Iniciando...' : 'Iniciar Sesión'}
             </button>
           </form>
-        ) : (
+        )}
+
+        {currentView === 'register' && (
           // Formulario de Registro
           <form onSubmit={handleRegisterSubmit} className="login-form">
             <div className="form-row">
@@ -245,6 +282,46 @@ function Login() {
           </form>
         )}
 
+        {currentView === 'forgot' && (
+          <div className="login-form">
+            {forgotSuccess ? (
+              <div className="forgot-success">
+                <div className="success-icon">✓</div>
+                <h2>Email enviado</h2>
+                <p>Si existe una cuenta con <strong>{forgotEmail}</strong>, recibirás las instrucciones en breve. Revisá también la carpeta spam.</p>
+                <button
+                  className="submit-btn"
+                  onClick={() => { setCurrentView('login'); setForgotSuccess(false); setForgotEmail(''); }}
+                >
+                  Volver al inicio de sesión
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotSubmit}>
+                <button type="button" className="back-btn" onClick={() => setCurrentView('login')}>
+                  ← Volver
+                </button>
+                <h2>Recuperar contraseña</h2>
+                <p className="forgot-subtitle">Ingresá tu email y te enviaremos las instrucciones para restablecer tu contraseña.</p>
+                <div className="form-group">
+                  <label htmlFor="forgotEmail">Email</label>
+                  <input
+                    type="email"
+                    id="forgotEmail"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    required
+                    placeholder="tu@email.com"
+                  />
+                </div>
+                {forgotError && <div className="error-message-login">{forgotError}</div>}
+                <button type="submit" className="submit-btn" disabled={forgotLoading}>
+                  {forgotLoading ? 'Enviando...' : 'Enviar instrucciones'}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="error-message-login">

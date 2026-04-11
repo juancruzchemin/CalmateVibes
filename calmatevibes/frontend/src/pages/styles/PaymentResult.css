@@ -4,6 +4,7 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    padding-top: 80px; /* espacio para el header fijo */
 }
 
 .payment-result-container {
@@ -12,10 +13,7 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    background: linear-gradient(135deg, 
-        rgba(183, 199, 116, 0.05) 0%, 
-        rgba(82, 105, 26, 0.05) 100%);
-    min-height: 70vh;
+    min-height: calc(100vh - 80px);
 }
 
 .payment-result {
@@ -175,6 +173,40 @@
 }
 
 /* Estilos específicos para cada tipo de resultado */
+
+/* Confirmación de número de pedido */
+.order-confirmation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #f0fff4 0%, #e6ffed 100%);
+    border: 2px solid #28a745;
+    border-radius: 12px;
+    padding: 1.25rem 2rem;
+    margin: 1.5rem 0;
+    gap: 0.25rem;
+}
+
+.order-confirmation-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.order-confirmation-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #155724;
+    letter-spacing: 0.02em;
+}
+
+.order-confirmation-hint {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: center;
+}
 
 /* Éxito */
 .success-info {

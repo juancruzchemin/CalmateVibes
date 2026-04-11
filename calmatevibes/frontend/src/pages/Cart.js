@@ -19,7 +19,9 @@ function Cart() {
         email: '',
         telefono: '',
         direccion: '',
-        ciudad: '',
+        pais: 'Argentina',
+        provincia: '',
+        ciudad: '',      
         codigoPostal: ''
     });
     const [paymentMethod, setPaymentMethod] = useState('mercadopago'); // mercadopago, whatsapp
@@ -30,7 +32,7 @@ function Cart() {
         const precio = item.precioUnitario || item.precioVenta || item.precio || 0;
         return sum + precio * item.cantidad;
     }, 0);
-    const envio = total > 5000 ? 0 : 800; // Envío gratis en compras mayores a $5000
+    const envio = total > 35000 ? 0 : 2500; // Envío gratis en compras mayores a $35.000 (solo productos)
     const totalConEnvio = total + envio;
     const showShipping = currentStep !== 'cart'; // Mostrar shipping en pasos avanzados
 

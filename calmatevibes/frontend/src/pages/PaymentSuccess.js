@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { procesarResultadoPago, verificarEstadoPago, procesarPagoEnBackend } from '../services/pagoService';
+import { useCarrito } from '../context/CarritoContext';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import './styles/PaymentResult.css';
@@ -10,6 +11,7 @@ function PaymentSuccess() {
     const [paymentResult, setPaymentResult] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { vaciarCarrito } = useCarrito();
 
     useEffect(() => {
         const processPaymentResult = async () => {
@@ -51,9 +53,18 @@ function PaymentSuccess() {
                     setPaymentResult(prev => ({
                         ...prev,
                         pedidoId: backendResult.pedidoId,
+                        numeroPedido: backendResult.numeroPedido,
                         backendProcessed: true,
                         backendMessage: backendResult.message || 'Pedido creado exitosamente'
                     }));
+
+                    // Vaciar el carrito en el frontend ahora que el pedido fue confirmado
+                    try {
+                        await vaciarCarrito();
+                        console.log('🛒 Carrito vaciado en frontend');
+                    } catch (cartError) {
+                        console.warn('⚠️ No se pudo vaciar el carrito en frontend:', cartError);
+                    }
                     
                 } catch (backendError) {
                     console.error('❌ Error procesando en backend:', backendError);
@@ -119,7 +130,7 @@ function PaymentSuccess() {
         );
     }
 
-    const { estado, mensaje, esExitoso, detalles } = paymentResult;
+    const { estado, mensaje, esExitoso, detalles, numeroPedido, backendProcessed } = paymentResult;
 
     return (
         <div className="payment-result-page">
@@ -131,11 +142,20 @@ function PaymentSuccess() {
                     </div>
                     
                     <h1 className="result-title">
-                        {esExitoso ? '¡Pago Exitoso!' : 'Pago en Proceso'}
+                        {esExitoso ? '¡Compra realizada!' : 'Pago en Proceso'}
                     </h1>
                     
                     <p className="result-message">{mensaje}</p>
-                    
+
+                    {/* Confirmación del pedido */}
+                    {esExitoso && backendProcessed && numeroPedido && (
+                        <div className="order-confirmation">
+                            <span className="order-confirmation-label">Número de pedido</span>
+                            <span className="order-confirmation-number">#{numeroPedido}</span>
+                            <span className="order-confirmation-hint">Guardá este número para hacer el seguimiento de tu compra</span>
+                        </div>
+                    )}
+
                     {detalles && (
                         <div className="payment-details">
                             <h3>Detalles del Pago</h3>
@@ -188,8 +208,7 @@ function PaymentSuccess() {
                         <div className="success-info">
                             <p>
                                 <strong>¿Qué sigue?</strong><br/>
-                                Te enviaremos un email con los detalles de tu pedido. 
-                                Puedes hacer seguimiento del estado en la sección "Mis Pedidos".
+                                Podés hacer seguimiento de tu compra en la sección "Mis Pedidos".
                             </p>
                         </div>
                     )}

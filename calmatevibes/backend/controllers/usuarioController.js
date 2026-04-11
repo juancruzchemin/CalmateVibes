@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const Usuario = require('../models/Usuario');
+const emailService = require('../services/emailService');
 
 // Generar JWT
 const generarToken = (id) => {
@@ -327,28 +329,38 @@ const eliminarDireccion = async (req, res) => {
 // @route   POST /api/usuarios/solicitar-reset-password
 // @access  Public
 const solicitarResetPassword = async (req, res) => {
+  // Respuesta genérica para no revelar si el email existe o no
+  const mensajeExito = 'Si existe una cuenta con ese email, recibirás las instrucciones en breve';
+
   try {
     const { email } = req.body;
     const usuario = await Usuario.findOne({ email });
 
     if (!usuario) {
-      return res.status(404).json({
+      return res.json({ success: true, message: mensajeExito });
+    }
+
+    // Generar token de reset (Bug 1 fix: era crearTokenResetPassword)
+    const resetToken = usuario.generarResetToken();
+    await usuario.save();
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    try {
+      await emailService.sendPasswordResetEmail(usuario.email, usuario.nombre, resetUrl);
+    } catch (emailError) {
+      // Rollback: limpiar el token si el email falla
+      usuario.resetPasswordToken = undefined;
+      usuario.resetPasswordExpire = undefined;
+      await usuario.save();
+      console.error('Error al enviar email de reset:', emailError);
+      return res.status(500).json({
         success: false,
-        message: 'No existe un usuario con ese email'
+        message: 'Error al enviar el email. Por favor, intentá de nuevo más tarde.'
       });
     }
 
-    // Generar token de reset
-    const resetToken = usuario.crearTokenResetPassword();
-    await usuario.save();
-
-    // TODO: Aquí se enviaría el email con el token
-    // Por ahora solo devolvemos el token para testing
-    res.json({
-      success: true,
-      message: 'Token de reset generado',
-      resetToken // En producción no se devolvería esto
-    });
+    res.json({ success: true, message: mensajeExito });
   } catch (error) {
     console.error('Error al solicitar reset:', error);
     res.status(400).json({
@@ -366,22 +378,26 @@ const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
 
+    // Bug 2 fix: hashear el token recibido para comparar con el guardado en BD
+    // y usar los nombres de campo correctos del modelo (resetPasswordToken / resetPasswordExpire)
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
     const usuario = await Usuario.findOne({
-      tokenResetPassword: token,
-      expiraTokenResetPassword: { $gt: Date.now() }
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }
     });
 
     if (!usuario) {
       return res.status(400).json({
         success: false,
-        message: 'Token inválido o expirado'
+        message: 'El link es inválido o ya expiró. Por favor, solicitá uno nuevo.'
       });
     }
 
-    // Actualizar contraseña
+    // Actualizar contraseña y limpiar el token
     usuario.password = password;
-    usuario.tokenResetPassword = undefined;
-    usuario.expiraTokenResetPassword = undefined;
+    usuario.resetPasswordToken = undefined;
+    usuario.resetPasswordExpire = undefined;
     
     await usuario.save();
 

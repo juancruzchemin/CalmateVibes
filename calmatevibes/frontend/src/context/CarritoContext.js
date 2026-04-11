@@ -238,7 +238,7 @@ export const CarritoProvider = ({ children }) => {
                 }
             } else {
                 // Usuario invitado: usar localStorage
-                const carritoLocal = cargarCarritoLocal();
+                const carritoLocal = (cargarCarritoLocal().items || []);
                 
                 // Buscar si el producto ya existe en el carrito
                 const itemExistente = carritoLocal.find(item => item._id === productoId || item.id === productoId);
@@ -306,7 +306,7 @@ export const CarritoProvider = ({ children }) => {
                 }
             } else {
                 // Usuario invitado: usar localStorage
-                const carritoLocal = cargarCarritoLocal();
+                const carritoLocal = (cargarCarritoLocal().items || []);
                 
                 // Buscar el item y actualizar cantidad
                 const itemIndex = carritoLocal.findIndex(item => 
@@ -353,13 +353,24 @@ export const CarritoProvider = ({ children }) => {
             const token = getToken();
             
             console.log('🛒 Eliminando del carrito:', productoId);
-            
-            const response = await carritoService.eliminarProducto(productoId, token);
-            
-            if (response.success) {
-                // Recargar carrito después de eliminar
-                await cargarCarrito();
-                console.log('✅ Producto eliminado del carrito');
+
+            if (isUserAuthenticated()) {
+                // Usuario autenticado: usar API
+                const response = await carritoService.eliminarProducto(productoId, token);
+                if (response.success) {
+                    await cargarCarrito();
+                    console.log('✅ Producto eliminado del carrito (API)');
+                    return { success: true };
+                }
+            } else {
+                // Usuario invitado: usar localStorage
+                const carritoLocal = (cargarCarritoLocal().items || []).filter(
+                    item => item._id !== productoId && item.id !== productoId
+                );
+                guardarCarritoLocal(carritoLocal);
+                setCarrito(carritoLocal);
+                calcularTotales(carritoLocal);
+                console.log('✅ Producto eliminado del carrito (localStorage)');
                 return { success: true };
             }
         } catch (err) {
@@ -460,7 +471,7 @@ export const CarritoProvider = ({ children }) => {
     };
 
     // Actualizar información de regalo del carrito
-    const actualizarInfoRegalo = async (esRegaloProp, nombreRegalo = '', apellidoRegalo = '') => {
+    const actualizarInfoRegalo = async (esRegaloProp, nombreRegalo = '', apellidoRegalo = '', dedicatoria = '') => {
         if (loading) return;
         
         setLoading(true);
@@ -473,7 +484,8 @@ export const CarritoProvider = ({ children }) => {
                 const response = await carritoService.actualizarInfoRegalo(
                     esRegaloProp, 
                     nombreRegalo, 
-                    apellidoRegalo, 
+                    apellidoRegalo,
+                    dedicatoria,
                     token
                 );
                 
@@ -487,7 +499,8 @@ export const CarritoProvider = ({ children }) => {
                     esRegalo: esRegaloProp,
                     destinatarioRegalo: {
                         nombre: nombreRegalo || '',
-                        apellido: apellidoRegalo || ''
+                        apellido: apellidoRegalo || '',
+                        dedicatoria: dedicatoria || ''
                     }
                 };
                 

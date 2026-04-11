@@ -48,6 +48,11 @@ const PedidoSchema = new mongoose.Schema({
     apellido: {
       type: String,
       trim: true
+    },
+    dedicatoria: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'La dedicatoria no puede exceder 500 caracteres']
     }
   },
 

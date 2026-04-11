@@ -4,6 +4,33 @@ import { useAuth } from '../../context/AuthContext';
 import { useCarrito } from '../../context/CarritoContext';
 import './styles/CheckoutForm.css';
 
+const PROVINCIAS_ARGENTINA = [
+    'Buenos Aires',
+    'Ciudad Autónoma de Buenos Aires',
+    'Catamarca',
+    'Chaco',
+    'Chubut',
+    'Córdoba',
+    'Corrientes',
+    'Entre Ríos',
+    'Formosa',
+    'Jujuy',
+    'La Pampa',
+    'La Rioja',
+    'Mendoza',
+    'Misiones',
+    'Neuquén',
+    'Río Negro',
+    'Salta',
+    'San Juan',
+    'San Luis',
+    'Santa Cruz',
+    'Santa Fe',
+    'Santiago del Estero',
+    'Tierra del Fuego',
+    'Tucumán'
+];
+
 function CheckoutForm({
     initialData,
     onSubmit,
@@ -26,12 +53,15 @@ function CheckoutForm({
         telefono: '',
         direccion: '',
         ciudad: '',
+        provincia: '',
+        pais: 'Argentina',
         codigoPostal: '',
         notas: '',
         esRegalo: false,
         // Datos de la persona que recibe el regalo
         nombreRegalo: '',
-        apellidoRegalo: ''
+        apellidoRegalo: '',
+        dedicatoria: ''
     });
 
     const [errors, setErrors] = useState({});
@@ -108,6 +138,11 @@ function CheckoutForm({
             newErrors.ciudad = 'La ciudad es requerida';
         }
 
+        // Provincia
+        if (!formData.provincia) {
+            newErrors.provincia = 'La provincia es requerida';
+        }
+
         // Código Postal
         if (!formData.codigoPostal.trim()) {
             newErrors.codigoPostal = 'El código postal es requerido';
@@ -141,14 +176,15 @@ function CheckoutForm({
         }));
 
         // Si es un campo de regalo y está marcado como regalo, actualizar el contexto
-        if ((name === 'nombreRegalo' || name === 'apellidoRegalo') && formData.esRegalo) {
+        if ((name === 'nombreRegalo' || name === 'apellidoRegalo' || name === 'dedicatoria') && formData.esRegalo) {
             // Usar un pequeño delay para evitar demasiadas llamadas
             clearTimeout(window.regaloUpdateTimeout);
             window.regaloUpdateTimeout = setTimeout(async () => {
                 try {
                     const nombreRegalo = name === 'nombreRegalo' ? value : formData.nombreRegalo;
                     const apellidoRegalo = name === 'apellidoRegalo' ? value : formData.apellidoRegalo;
-                    await actualizarInfoRegalo(true, nombreRegalo, apellidoRegalo);
+                    const dedicatoria = name === 'dedicatoria' ? value : formData.dedicatoria;
+                    await actualizarInfoRegalo(true, nombreRegalo, apellidoRegalo, dedicatoria);
                 } catch (error) {
                     console.error('Error actualizando información de regalo:', error);
                 }
@@ -178,9 +214,10 @@ function CheckoutForm({
         // Actualizar información de regalo en el contexto del carrito
         try {
             await actualizarInfoRegalo(
-                esRegalo, 
-                esRegalo ? formData.nombreRegalo : '', 
-                esRegalo ? formData.apellidoRegalo : ''
+                esRegalo,
+                esRegalo ? formData.nombreRegalo : '',
+                esRegalo ? formData.apellidoRegalo : '',
+                esRegalo ? formData.dedicatoria : ''
             );
         } catch (error) {
             console.error('Error actualizando información de regalo:', error);
@@ -256,7 +293,7 @@ function CheckoutForm({
                                 <h3 className="checkout-section-title">Datos Personales</h3>
 
                                 {/* Checkbox para regalo/otra persona */}
-                                <div className="checkout-form-group checkbox-group">
+                                <div className={`checkout-form-group checkbox-group${formData.esRegalo ? ' checked' : ''}`}>
                                     <label className="checkbox-label">
                                         <input
                                             type="checkbox"
@@ -268,11 +305,6 @@ function CheckoutForm({
                                             Es un regalo o para otra persona
                                         </span>
                                     </label>
-                                    {formData.esRegalo && (
-                                        <p className="checkbox-help-text">
-                                            Ingresa los datos de la persona que recibirá el pedido
-                                        </p>
-                                    )}
                                 </div>
 
                                 {/* Campos condicionales para regalo */}
@@ -313,6 +345,23 @@ function CheckoutForm({
                                                 />
                                                 {errors.apellidoRegalo && <span className="checkout-form-error">{errors.apellidoRegalo}</span>}
                                             </div>
+                                        </div>
+
+                                        <div className="checkout-form-group">
+                                            <label htmlFor="dedicatoria" className="checkout-form-label">
+                                                Dedicatoria o mensaje (Opcional)
+                                            </label>
+                                            <textarea
+                                                id="dedicatoria"
+                                                name="dedicatoria"
+                                                value={formData.dedicatoria}
+                                                onChange={handleInputChange}
+                                                className="checkout-form-textarea"
+                                                placeholder="Escribí el mensaje que queriés que reciba esa persona..."
+                                                rows="3"
+                                                maxLength={500}
+                                            />
+                                            <span className="checkout-form-hint">{formData.dedicatoria.length}/500</span>
                                         </div>
                                     </div>
                                 )}
@@ -414,6 +463,41 @@ function CheckoutForm({
 
                                 <div className="checkout-form-row">
                                     <div className="checkout-form-group">
+                                        <label htmlFor="pais" className="checkout-form-label">
+                                            País
+                                        </label>
+                                        <input
+                                            id="pais"
+                                            name="pais"
+                                            type="text"
+                                            value="Argentina"
+                                            readOnly
+                                            className="checkout-form-input checkout-input-readonly"
+                                        />
+                                    </div>
+
+                                    <div className="checkout-form-group">
+                                        <label htmlFor="provincia" className="checkout-form-label">
+                                            Provincia *
+                                        </label>
+                                        <select
+                                            id="provincia"
+                                            name="provincia"
+                                            value={formData.provincia}
+                                            onChange={handleInputChange}
+                                            className={`checkout-form-input ${errors.provincia ? 'checkout-input-error' : ''}`}
+                                        >
+                                            <option value="">Seleccioná una provincia</option>
+                                            {PROVINCIAS_ARGENTINA.map(p => (
+                                                <option key={p} value={p}>{p}</option>
+                                            ))}
+                                        </select>
+                                        {errors.provincia && <span className="checkout-form-error">{errors.provincia}</span>}
+                                    </div>
+                                </div>
+
+                                <div className="checkout-form-row">
+                                    <div className="checkout-form-group">
                                         <label htmlFor="ciudad" className="checkout-form-label">
                                             Ciudad *
                                         </label>
@@ -447,6 +531,8 @@ function CheckoutForm({
                                         {errors.codigoPostal && <span className="checkout-form-error">{errors.codigoPostal}</span>}
                                     </div>
                                 </div>
+
+
                             </div>
 
                             {/* Additional Notes */}
@@ -507,27 +593,7 @@ function CheckoutForm({
                 <form onSubmit={handleSubmit} className="checkout-form-content">
                     {/* Personal Information */}
                     <div className="checkout-form-section">
-                        <h3 className="checkout-section-title">Datos Personales</h3>
-
-                        {/* Checkbox para regalo/otra persona */}
-                        <div className="checkout-form-group checkbox-group">
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.esRegalo}
-                                    onChange={handleRegaloChange}
-                                    className="checkbox-input"
-                                />
-                                <span className="checkbox-text">
-                                    Es un regalo o para otra persona
-                                </span>
-                            </label>
-                            {formData.esRegalo && (
-                                <p className="checkbox-help-text">
-                                    Ingresa los datos de la persona que recibirá el pedido
-                                </p>
-                            )}
-                        </div>
+                        <h3 className="checkout-section-title">Datos Personales</h3>                       
 
                         {/* Nombre y Apellido separados */}
                         <div className="checkout-form-row">
@@ -602,70 +668,119 @@ function CheckoutForm({
                             </div>
                         </div>
 
+                         {/* Checkbox para regalo/otra persona */}
+                        <div className={`checkout-form-group checkbox-group${formData.esRegalo ? ' checked' : ''}`}>
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.esRegalo}
+                                    onChange={handleRegaloChange}
+                                    className="checkbox-input"
+                                />
+                                <span className="checkbox-text">
+                                    Es un regalo o para otra persona
+                                </span>
+                            </label>
+                        </div>
+
                         {/* Campos condicionales para regalo */}
-                    {formData.esRegalo && (
-                        <div className="regalo-fields">
-                            <h4 className="regalo-subtitle">Datos del destinatario</h4>
-                            <div className="checkout-form-row">
-                                <div className="checkout-form-group">
-                                    <label htmlFor="nombreRegalo-desktop" className="checkout-form-label">
-                                        Nombre del destinatario *
-                                    </label>
-                                    <input
-                                        id="nombreRegalo-desktop"
-                                        name="nombreRegalo"
-                                        type="text"
-                                        value={formData.nombreRegalo}
-                                        onChange={handleInputChange}
-                                        className={`checkout-form-input ${errors.nombreRegalo ? 'checkout-input-error' : ''}`}
-                                        placeholder="Nombre"
-                                        autoComplete="given-name"
-                                    />
-                                    {errors.nombreRegalo && <span className="checkout-form-error">{errors.nombreRegalo}</span>}
+                        {formData.esRegalo && (
+                            <div className="regalo-fields">
+                                <h4 className="regalo-subtitle">Datos del destinatario</h4>
+                                <div className="checkout-form-row">
+                                    <div className="checkout-form-group">
+                                        <label htmlFor="nombreRegalo-desktop" className="checkout-form-label">
+                                            Nombre del destinatario *
+                                        </label>
+                                        <input
+                                            id="nombreRegalo-desktop"
+                                            name="nombreRegalo"
+                                            type="text"
+                                            value={formData.nombreRegalo}
+                                            onChange={handleInputChange}
+                                            className={`checkout-form-input ${errors.nombreRegalo ? 'checkout-input-error' : ''}`}
+                                            placeholder="Nombre"
+                                            autoComplete="given-name"
+                                        />
+                                        {errors.nombreRegalo && <span className="checkout-form-error">{errors.nombreRegalo}</span>}
+                                    </div>
+
+                                    <div className="checkout-form-group">
+                                        <label htmlFor="apellidoRegalo-desktop" className="checkout-form-label">
+                                            Apellido del destinatario *
+                                        </label>
+                                        <input
+                                            id="apellidoRegalo-desktop"
+                                            name="apellidoRegalo"
+                                            type="text"
+                                            value={formData.apellidoRegalo}
+                                            onChange={handleInputChange}
+                                            className={`checkout-form-input ${errors.apellidoRegalo ? 'checkout-input-error' : ''}`}
+                                            placeholder="Apellido"
+                                            autoComplete="family-name"
+                                        />
+                                        {errors.apellidoRegalo && <span className="checkout-form-error">{errors.apellidoRegalo}</span>}
+                                    </div>
                                 </div>
 
                                 <div className="checkout-form-group">
-                                    <label htmlFor="apellidoRegalo-desktop" className="checkout-form-label">
-                                        Apellido del destinatario *
+                                    <label htmlFor="dedicatoria-desktop" className="checkout-form-label">
+                                        Dedicatoria o mensaje (Opcional)
                                     </label>
-                                    <input
-                                        id="apellidoRegalo-desktop"
-                                        name="apellidoRegalo"
-                                        type="text"
-                                        value={formData.apellidoRegalo}
+                                    <textarea
+                                        id="dedicatoria-desktop"
+                                        name="dedicatoria"
+                                        value={formData.dedicatoria}
                                         onChange={handleInputChange}
-                                        className={`checkout-form-input ${errors.apellidoRegalo ? 'checkout-input-error' : ''}`}
-                                        placeholder="Apellido"
-                                        autoComplete="family-name"
+                                        className="checkout-form-textarea"
+                                        placeholder="Escribí el mensaje que queriés que reciba esa persona..."
+                                        rows="3"
+                                        maxLength={500}
                                     />
-                                    {errors.apellidoRegalo && <span className="checkout-form-error">{errors.apellidoRegalo}</span>}
+                                    <span className="checkout-form-hint">{formData.dedicatoria.length}/500</span>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                     </div>
 
-                    
+
 
                     {/* Shipping Address */}
                     <div className="checkout-form-section">
                         <h3 className="checkout-section-title">Dirección de Envío</h3>
+                        <div className="checkout-form-row">
+                            <div className="checkout-form-group">
+                                <label htmlFor="pais-desktop" className="checkout-form-label">
+                                    País
+                                </label>
+                                <input
+                                    id="pais-desktop"
+                                    name="pais"
+                                    type="text"
+                                    value="Argentina"
+                                    readOnly
+                                    className="checkout-form-input checkout-input-readonly"
+                                />
+                            </div>
 
-                        <div className="checkout-form-group">
-                            <label htmlFor="direccion-desktop" className="checkout-form-label">
-                                Dirección *
-                            </label>
-                            <input
-                                id="direccion-desktop"
-                                name="direccion"
-                                type="text"
-                                value={formData.direccion}
-                                onChange={handleInputChange}
-                                className={`checkout-form-input ${errors.direccion ? 'checkout-input-error' : ''}`}
-                                placeholder="Calle, número, piso, departamento"
-                                autoComplete="street-address"
-                            />
-                            {errors.direccion && <span className="checkout-form-error">{errors.direccion}</span>}
+                            <div className="checkout-form-group">
+                                <label htmlFor="provincia-desktop" className="checkout-form-label">
+                                    Provincia *
+                                </label>
+                                <select
+                                    id="provincia-desktop"
+                                    name="provincia"
+                                    value={formData.provincia}
+                                    onChange={handleInputChange}
+                                    className={`checkout-form-input ${errors.provincia ? 'checkout-input-error' : ''}`}
+                                >
+                                    <option value="">Seleccioná una provincia</option>
+                                    {PROVINCIAS_ARGENTINA.map(p => (
+                                        <option key={p} value={p}>{p}</option>
+                                    ))}
+                                </select>
+                                {errors.provincia && <span className="checkout-form-error">{errors.provincia}</span>}
+                            </div>
                         </div>
 
                         <div className="checkout-form-row">
@@ -703,6 +818,25 @@ function CheckoutForm({
                                 {errors.codigoPostal && <span className="checkout-form-error">{errors.codigoPostal}</span>}
                             </div>
                         </div>
+
+                        <div className="checkout-form-group">
+                            <label htmlFor="direccion-desktop" className="checkout-form-label">
+                                Dirección *
+                            </label>
+                            <input
+                                id="direccion-desktop"
+                                name="direccion"
+                                type="text"
+                                value={formData.direccion}
+                                onChange={handleInputChange}
+                                className={`checkout-form-input ${errors.direccion ? 'checkout-input-error' : ''}`}
+                                placeholder="Calle, número, piso, departamento"
+                                autoComplete="street-address"
+                            />
+                            {errors.direccion && <span className="checkout-form-error">{errors.direccion}</span>}
+                        </div>
+
+
                     </div>
 
                     {/* Additional Notes */}

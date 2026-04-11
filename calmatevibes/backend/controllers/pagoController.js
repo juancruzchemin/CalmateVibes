@@ -64,6 +64,12 @@ const crearPreferencia = async (req, res) => {
 
         console.log('🔗 External Reference Data:', referenceData);
 
+        // Base URL para back_urls de MercadoPago (debe ser HTTPS en producción)
+        // Usar MP_BACK_URL_BASE si está definida, sino FRONTEND_URL
+        const backUrlBase = process.env.MP_BACK_URL_BASE || process.env.FRONTEND_URL;
+        const backUrlIsHttps = backUrlBase && backUrlBase.startsWith('https');
+        console.log('🔗 Back URLs base:', backUrlBase, '| HTTPS:', backUrlIsHttps);
+
         // Formatear preferencia para MercadoPago
         const preferenceData = {
             items: items.map((item, index) => ({
@@ -80,12 +86,13 @@ const crearPreferencia = async (req, res) => {
                 email: String(payer.email)
             },
             back_urls: {
-                success: `https://calmatex.netlify.app/`,
-                failure: `https://calmatex.netlify.app/`,
-                pending: `https://calmatex.netlify.app/`,
+                success: `${backUrlBase}/pago/exito`,
+                failure: `${backUrlBase}/pago/error`,
+                pending: `${backUrlBase}/pago/pendiente`,
             },
-            auto_return: 'approved',
-            notification_url: 'https://calmatevibes.onrender.com/api/pagos/webhook', //|| `${process.env.BACKEND_URL}/api/pagos/webhook`,
+            // auto_return solo funciona con URLs HTTPS (requerido por MercadoPago)
+            ...(backUrlIsHttps && { auto_return: 'approved' }),
+            notification_url: `${process.env.BACKEND_URL}/api/pagos/webhook`,
             external_reference: JSON.stringify(referenceData)
         }
         const response = await preference.create({ body: preferenceData });
@@ -177,7 +184,8 @@ const procesarResultado = async (req, res) => {
                 return res.json({
                     success: true,
                     message: 'Pago procesado exitosamente',
-                    pedidoId: resultado.pedidoId
+                    pedidoId: resultado.pedidoId,
+                    numeroPedido: resultado.numeroPedido
                 });
             } catch (processingError) {
                 console.error('❌ Error procesando pago exitoso:', processingError);
@@ -491,6 +499,18 @@ const procesarPagoExitoso = async (paymentData) => {
             payment_type_id
         } = paymentData;
 
+        // 0. Verificar si el pedido ya fue procesado (idempotencia)
+        const pedidoExistente = await Pedido.findOne({ 'mercadoPago.paymentId': String(payment_id) });
+        if (pedidoExistente) {
+            console.log('⚠️ Pedido ya existe para este pago, evitando duplicado:', pedidoExistente._id);
+            return {
+                success: true,
+                pedidoId: pedidoExistente._id,
+                numeroPedido: pedidoExistente.numeroPedido,
+                mensaje: 'Pedido ya procesado'
+            };
+        }
+
         // 1. Obtener el carrito del usuario o sesión
         let carrito;
         if (usuario_id) {
@@ -559,6 +579,16 @@ const procesarPagoExitoso = async (paymentData) => {
 
         const nuevoPedido = new Pedido({
             usuario: usuario ? usuario._id : null,
+
+            // Información de regalo desde el carrito
+            esRegalo: carrito.esRegalo || false,
+            ...(carrito.esRegalo && carrito.destinatarioRegalo && {
+                destinatarioRegalo: {
+                    nombre: carrito.destinatarioRegalo.nombre || '',
+                    apellido: carrito.destinatarioRegalo.apellido || '',
+                    dedicatoria: carrito.destinatarioRegalo.dedicatoria || ''
+                }
+            }),
 
             // Datos de contacto - usar datos válidos o placeholders que cumplan validaciones
             datosContacto: {

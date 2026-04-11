@@ -95,7 +95,8 @@ const crearPedido = async (req, res) => {
     if (esRegalo && destinatarioRegalo) {
       pedidoData.destinatarioRegalo = {
         nombre: destinatarioRegalo.nombre.trim(),
-        apellido: destinatarioRegalo.apellido.trim()
+        apellido: destinatarioRegalo.apellido.trim(),
+        dedicatoria: destinatarioRegalo.dedicatoria ? destinatarioRegalo.dedicatoria.trim() : ''
       };
     }
 

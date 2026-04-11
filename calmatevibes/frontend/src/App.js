@@ -20,6 +20,7 @@ import OfferManagementPage from './pages/OfferManagementPage.js';
 import PaymentSuccess from './pages/PaymentSuccess.js';
 import PaymentFailure from './pages/PaymentFailure.js';
 import PaymentPending from './pages/PaymentPending.js';
+import ResetPassword from './pages/ResetPassword.js';
 import { CarritoProvider, useCarrito } from './context/CarritoContext.js';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
@@ -61,6 +62,7 @@ const AppWithProviders = () => {
           <Route path="/mate-care" element={<Cuidados />} />
           <Route path="/care" element={<Cuidados />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           
           {/* Rutas de resultado de pago */}
           <Route path="/pago/exito" element={<PaymentSuccess />} />

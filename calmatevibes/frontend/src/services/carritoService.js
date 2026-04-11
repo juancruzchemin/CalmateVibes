@@ -228,7 +228,7 @@ const carritoService = {
   },
 
   // Actualizar información de regalo del carrito
-  actualizarInfoRegalo: async (esRegalo, nombreRegalo = '', apellidoRegalo = '', token = null) => {
+  actualizarInfoRegalo: async (esRegalo, nombreRegalo = '', apellidoRegalo = '', dedicatoria = '', token = null) => {
     try {
       const headers = {
         'Content-Type': 'application/json'
@@ -251,7 +251,8 @@ const carritoService = {
         body: JSON.stringify({
           esRegalo,
           nombreRegalo,
-          apellidoRegalo
+          apellidoRegalo,
+          dedicatoria
         })
       });
 

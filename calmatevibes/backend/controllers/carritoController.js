@@ -608,7 +608,7 @@ const validarCarrito = async (req, res) => {
 // @access  Private/Public (con sessionId)
 const actualizarInfoRegalo = async (req, res) => {
   try {
-    const { esRegalo, nombreRegalo, apellidoRegalo } = req.body;
+    const { esRegalo, nombreRegalo, apellidoRegalo, dedicatoria } = req.body;
     let carrito;
 
     if (req.usuario) {
@@ -646,12 +646,14 @@ const actualizarInfoRegalo = async (req, res) => {
     if (esRegalo && nombreRegalo && apellidoRegalo) {
       carrito.destinatarioRegalo = {
         nombre: nombreRegalo.trim(),
-        apellido: apellidoRegalo.trim()
+        apellido: apellidoRegalo.trim(),
+        dedicatoria: dedicatoria ? dedicatoria.trim() : ''
       };
     } else {
       carrito.destinatarioRegalo = {
         nombre: '',
-        apellido: ''
+        apellido: '',
+        dedicatoria: ''
       };
     }
 
