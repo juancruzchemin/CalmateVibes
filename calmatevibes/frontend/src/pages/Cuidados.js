@@ -71,6 +71,7 @@ function Cuidados() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [expandedNodes, setExpandedNodes] = useState(new Set());
   const loadedRef = useRef(new Set());
+  const docPanelRef = useRef(null);
 
   const loadNodesForCat = useCallback(async (catId) => {
     const id = String(catId);
@@ -125,6 +126,16 @@ function Cuidados() {
     });
   };
 
+  const handleSelectDoc = (doc) => {
+    setSelectedDoc(doc);
+    // On mobile, scroll to the doc panel after a short delay to let React render
+    if (window.innerWidth <= 768 && docPanelRef.current) {
+      setTimeout(() => {
+        docPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  };
+
   return (
     <div className="cuidados-page">
       <Header carrito={carrito} userRole="client" />
@@ -169,7 +180,7 @@ function Cuidados() {
                               key={node._id}
                               node={node}
                               selectedDocId={selectedDoc ? String(selectedDoc._id) : null}
-                              onSelectDoc={setSelectedDoc}
+                              onSelectDoc={handleSelectDoc}
                               expandedNodes={expandedNodes}
                               toggleNode={toggleNode}
                             />
@@ -182,9 +193,9 @@ function Cuidados() {
               })}
             </aside>
 
-            <div className="cuidados-doc-panel">
+            <div className="cuidados-doc-panel" ref={docPanelRef}>
               {selectedDoc ? (
-                <>
+                <>                 
                   <h2 className="doc-panel-title">{selectedDoc.titulo}</h2>
                   <div className="doc-panel-content">
                     {selectedDoc.contenido ? (

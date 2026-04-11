@@ -6,6 +6,7 @@ import Ordenador from './Ordenador.js';
 import Notification from '../ui/Notification.js';
 import CategorySelector from './CategorySelector.js';
 import MobileFilters from './MobileFilters.js';
+import categoriaService from '../../services/categoriaService';
 import { useCarrito } from '../../context/CarritoContext.js';
 import '../styles/Catalog.css';
 
@@ -48,9 +49,24 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
   const [hoveredItemId, setHoveredItemId] = useState(null); // Estado para manejar el hover
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false); // Estado para el sidebar móvil
   const [tiempoActual, setTiempoActual] = useState(Date.now()); // Para actualizar el contador
+  const [categoriasMobile, setCategoriasMobile] = useState([]); // Categorías para botones móvil
   const itemsPerPage = 6;
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCarrito();
+
+  // Cargar categorías para los botones de filtro móvil
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const response = await categoriaService.obtenerCategorias({ incluirInactivas: 'false' });
+        const lista = response.data || response.categorias || [];
+        setCategoriasMobile(lista);
+      } catch (e) {
+        // silently ignore; buttons simply won't render
+      }
+    };
+    fetchCategorias();
+  }, []);
 
   // Actualizar el tiempo cada minuto para las ofertas con límite de tiempo
   useEffect(() => {
@@ -131,6 +147,14 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
     setHoveredItemId(null); // Resetea el hover cuando el mouse sale del ítem
   };
 
+  const handleCategoryNavigate = (slug) => {
+    if (!slug) {
+      navigate('/catalog');
+    } else {
+      navigate(`/catalogo/${slug}`);
+    }
+  };
+
   return (
     <div className="catalogo">
       {/* Solo mostrar controles si hay productos en la categoría */}
@@ -174,6 +198,29 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
             </>
           )}
         </>
+      )}
+
+      {/* Botones de categoría para móvil */}
+      {categoriasMobile.length > 0 && (
+        <div className="mobile-category-filters">
+          <button
+            className={`mobile-category-btn${catalogo.nombre === 'todos' || catalogo.nombre === 'catalog' ? ' active' : ''}`}
+            onClick={() => handleCategoryNavigate(null)}
+          >
+            Todos
+          </button>
+          {categoriasMobile.map((cat) => (
+            <button
+              key={cat._id}
+              className={`mobile-category-btn${
+                catalogo.nombre === cat.nombre || catalogo.nombre === cat.slug ? ' active' : ''
+              }`}
+              onClick={() => handleCategoryNavigate(cat.slug || cat.nombre.toLowerCase())}
+            >
+              {cat.nombre}
+            </button>
+          ))}
+        </div>
       )}
 
       <div className="catalogo-items">

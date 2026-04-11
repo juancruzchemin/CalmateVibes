@@ -12,7 +12,7 @@
 /* Wrapper para las imágenes */
 .section-divider-wrapper {
   display: flex;
-  gap: 2rem;
+  gap: 0;
   animation: scroll-infinite 40s linear infinite;
   white-space: nowrap;
 }
@@ -25,6 +25,7 @@
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
   position: relative;
   z-index: 9999;
+  margin-right: 2rem;
 }
 
 /* Animación para el efecto infinito */
@@ -49,8 +50,12 @@
   }
 
   .section-divider-wrapper {
-    gap: 1.5rem;
+    gap: 0;
     animation-duration: 100s;
+  }
+
+  .section-divider-image {
+    margin-right: 1.5rem;
   }
 }
 
@@ -65,7 +70,11 @@
   }
 
   .section-divider-wrapper {
-    gap: 1rem;
+    gap: 0;
     animation-duration: 100s;
+  }
+
+  .section-divider-image {
+    margin-right: 1rem;
   }
 }

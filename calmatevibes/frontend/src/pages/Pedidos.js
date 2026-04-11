@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import PedidosStats from '../components/admin/PedidosStats';
@@ -19,6 +19,7 @@ function Pedidos() {
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const detailRef = useRef(null);
   
   const { token, isAdmin } = useAuth();
 
@@ -148,6 +149,11 @@ function Pedidos() {
 
   const handlePedidoSelect = (pedido) => {
     setSelectedPedido(pedido);
+    if (window.innerWidth <= 768 && detailRef.current) {
+      setTimeout(() => {
+        detailRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
   };
 
   const handleStatusUpdate = async (pedidoId, newStatus) => {
@@ -265,14 +271,25 @@ function Pedidos() {
             />
           </div>
 
-          <div className="pedidos-right">
+          <div className="pedidos-right" ref={detailRef}>
             {selectedPedido ? (
-              <PedidoDetail
-                pedido={selectedPedido}
-                onStatusUpdate={handleStatusUpdate}
-                onOpenTracking={() => setShowTrackingModal(true)}
-                onOpenShipping={() => setShowShippingModal(true)}
-              />
+              <>
+                <button
+                  className="pedidos-mobile-back"
+                  onClick={() => {
+                    setSelectedPedido(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  ← Volver a la lista
+                </button>
+                <PedidoDetail
+                  pedido={selectedPedido}
+                  onStatusUpdate={handleStatusUpdate}
+                  onOpenTracking={() => setShowTrackingModal(true)}
+                  onOpenShipping={() => setShowShippingModal(true)}
+                />
+              </>
             ) : (
               <div className="no-selection">
                 <h3>Selecciona un pedido</h3>

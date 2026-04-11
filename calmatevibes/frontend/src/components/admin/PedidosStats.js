@@ -29,10 +29,8 @@ function PedidosStats({ pedidos, onFilterByStatus }) {
           <div className="stat-icon">
             <i className="bi bi-clock-history"></i>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.pendientes}</span>
-            <span className="stat-label">Pendientes</span>
-          </div>
+          <span className="stat-number">{stats.pendientes}</span>
+          <span className="stat-label">Pendientes</span>
         </div>
 
         <div 
@@ -43,10 +41,8 @@ function PedidosStats({ pedidos, onFilterByStatus }) {
           <div className="stat-icon">
             <i className="bi bi-check-circle"></i>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.confirmados}</span>
-            <span className="stat-label">Confirmados</span>
-          </div>
+          <span className="stat-number">{stats.confirmados}</span>
+          <span className="stat-label">Confirmados</span>
         </div>
 
 
@@ -58,10 +54,8 @@ function PedidosStats({ pedidos, onFilterByStatus }) {
           <div className="stat-icon">
             <i className="bi bi-box-seam"></i>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.listos}</span>
-            <span className="stat-label">Listos</span>
-          </div>
+          <span className="stat-number">{stats.listos}</span>
+          <span className="stat-label">Listos</span>
         </div>
 
         <div 
@@ -72,10 +66,8 @@ function PedidosStats({ pedidos, onFilterByStatus }) {
           <div className="stat-icon">
             <i className="bi bi-truck"></i>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.enviados}</span>
-            <span className="stat-label">Enviados</span>
-          </div>
+          <span className="stat-number">{stats.enviados}</span>
+          <span className="stat-label">Enviados</span>
         </div>
 
         <div 
@@ -86,10 +78,8 @@ function PedidosStats({ pedidos, onFilterByStatus }) {
           <div className="stat-icon">
             <i className="bi bi-check-circle-fill"></i>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.entregados}</span>
-            <span className="stat-label">Entregados</span>
-          </div>
+          <span className="stat-number">{stats.entregados}</span>
+          <span className="stat-label">Entregados</span>
         </div>
 
         <div 
@@ -100,10 +90,8 @@ function PedidosStats({ pedidos, onFilterByStatus }) {
           <div className="stat-icon">
             <i className="bi bi-x-circle"></i>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.cancelados}</span>
-            <span className="stat-label">Cancelados</span>
-          </div>
+          <span className="stat-number">{stats.cancelados}</span>
+          <span className="stat-label">Cancelados</span>
         </div>
 
         <div 
@@ -114,10 +102,8 @@ function PedidosStats({ pedidos, onFilterByStatus }) {
           <div className="stat-icon">
             <i className="bi bi-list-ul"></i>
           </div>
-          <div className="stat-content">
-            <span className="stat-number">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
+          <span className="stat-number">{stats.total}</span>
+          <span className="stat-label">Total</span>
         </div>
       </div>
     </div>

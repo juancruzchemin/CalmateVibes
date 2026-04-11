@@ -51,6 +51,11 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Mobile back button — hidden on desktop */
+.pedidos-mobile-back {
+  display: none;
+}
+
 /* No selection state */
 .no-selection {
   display: flex;
@@ -95,11 +100,20 @@
 
 @media (max-width: 768px) {
   .pedidos-container {
-    padding: 1rem;
+    padding: 0.75rem;
+    padding-top: 4.5rem;
+  }
+
+  .pedidos-header {
+    margin-bottom: 1rem;
   }
   
   .pedidos-header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+
+  .pedidos-header p {
+    font-size: 0.95rem;
   }
   
   .pedidos-content {
@@ -108,17 +122,34 @@
   }
   
   .pedidos-left {
-    order: 2;
+    order: 1;
   }
   
   .pedidos-right {
-    order: 1;
+    order: 2;
+  }
+
+  /* Back button shown only on mobile */
+  .pedidos-mobile-back {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: none;
+    color: #52691a;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem 0 0.75rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 }
 
 @media (max-width: 480px) {
   .pedidos-container {
     padding: 0.5rem;
+    padding-top: 4.5rem;
   }
   
   .pedidos-header {
@@ -126,10 +157,10 @@
   }
   
   .pedidos-header h1 {
-    font-size: 1.75rem;
+    font-size: 1.6rem;
   }
   
   .pedidos-header p {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 }
