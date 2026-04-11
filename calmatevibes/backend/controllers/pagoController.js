@@ -4,6 +4,7 @@ const Producto = require('../models/Producto');
 const Carrito = require('../models/Carrito');
 const Usuario = require('../models/Usuario');
 const Pago = require('../models/Pago');
+const emailService = require('../services/emailService');
 
 // Inicializar el cliente de Mercado Pago con el token correcto
 const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
@@ -59,6 +60,8 @@ const crearPreferencia = async (req, res) => {
             referencia: external_reference || `CV_${Date.now()}`,
             usuario_id: usuario_id || null,
             session_id: session_id || null,
+            customer_email: payer?.email || null,
+            customer_nombre: payer?.name || null,
             timestamp: Date.now()
         };
 
@@ -494,10 +497,23 @@ const procesarPagoExitoso = async (paymentData) => {
             usuario_id,
             session_id,
             payer_email,
+            customer_email,
+            customer_nombre,
             transaction_amount,
             payment_method_id,
             payment_type_id
         } = paymentData;
+
+        // Extraer datos del cliente del external_reference si están disponibles
+        let emailFromRef = null;
+        let nombreFromRef = null;
+        if (external_reference) {
+            try {
+                const refData = JSON.parse(external_reference);
+                emailFromRef = refData.customer_email || null;
+                nombreFromRef = refData.customer_nombre || null;
+            } catch (e) { /* ignorar */ }
+        }
 
         // 0. Verificar si el pedido ya fue procesado (idempotencia)
         const pedidoExistente = await Pedido.findOne({ 'mercadoPago.paymentId': String(payment_id) });
@@ -692,6 +708,38 @@ const procesarPagoExitoso = async (paymentData) => {
             console.log(`📦 Stock actualizado para ${producto.nombre}: ${stockAnterior} -> ${producto.stock}`);
         }
         console.log('✅ Stock actualizado completamente');
+
+        // 5b. Enviar correo de confirmación al comprador
+        const emailDestino = emailFromRef || payer_email || usuario?.email;
+        const nombreDestino = nombreFromRef || usuario?.nombre || 'Cliente';
+        if (emailDestino) {
+            try {
+                const itemsParaEmail = carrito.items.map(item => ({
+                    nombre: item.producto?.nombre || 'Producto',
+                    cantidad: item.cantidad,
+                    precioUnitario: item.producto?.precioVenta || 0,
+                    subtotal: item.cantidad * (item.producto?.precioVenta || 0)
+                }));
+                await emailService.sendOrderConfirmationEmail(
+                    emailDestino,
+                    nombreDestino,
+                    {
+                        numeroPedido: pedidoGuardado.numeroPedido,
+                        items: itemsParaEmail,
+                        subtotal: pedidoGuardado.subtotal,
+                        costoEnvio: pedidoGuardado.costoEnvio || 0,
+                        total: pedidoGuardado.total,
+                        esRegalo: pedidoGuardado.esRegalo,
+                        destinatarioRegalo: pedidoGuardado.destinatarioRegalo
+                    }
+                );
+                console.log('📧 Correo de confirmación enviado a:', emailDestino);
+            } catch (emailError) {
+                console.error('⚠️ Error enviando correo de confirmación (no crítico):', emailError.message);
+            }
+        } else {
+            console.log('⚠️ No se encontró email del comprador, omitiendo correo de confirmación');
+        }
 
         // 6. Vaciar el carrito
         console.log('🛒 Vaciando carrito...');

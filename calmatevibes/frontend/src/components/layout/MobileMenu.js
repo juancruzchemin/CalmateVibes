@@ -155,6 +155,16 @@ function MobileMenu({
               >
                 Ventas
               </Link>
+              <Link
+                to="/cuidados-admin"
+                className="admin-dropdown-item"
+                onClick={() => {
+                  setAdminDropdownOpen(false);
+                  closeMobileMenu();
+                }}
+              >
+                Cuidados
+              </Link>
             </div>
           )}
         </div>

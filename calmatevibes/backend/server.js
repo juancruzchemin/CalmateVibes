@@ -38,6 +38,7 @@ app.use('/api/envios', require('./routes/envios'));
 app.use('/api/pagos', require('./routes/pagos')); // Nueva ruta para MercadoPago
 app.use('/api/ofertas', require('./routes/ofertas')); // Nueva ruta para Ofertas
 app.use('/api/cuidados', require('./routes/cuidados')); // Nueva ruta para Cuidados
+app.use('/api/nodos-cuidado', require('./routes/nodosCuidado')); // Árbol de cuidados
 
 // Manejo de errores 404
 app.use('*', (req, res) => {

@@ -31,10 +31,7 @@ function Contact() {
       {/* Hero Section */}
       <div className="contact-hero-section">
         <div className="contact-content-container">
-          <h1 className="contact-hero-title">Contactanos</h1>
-          <p className="contact-hero-subtitle">
-            Seguinos en nuestras redes sociales y contactanos directamente por WhatsApp
-          </p>
+          <h1 className="contact-hero-title">Contactanos</h1>          
         </div>
       </div>
 

@@ -3,17 +3,8 @@
 /* Wrapper principal de la página de contacto */
 .contact-page-wrapper {
   width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
   position: relative;
   margin-top: 25px;
-}
-
-/* Mejoras de viewport */
-@supports (height: 100dvh) {
-  .contact-page-wrapper {
-    min-height: 100dvh;
-  }
 }
 
 /* Contenedor principal de contenido */

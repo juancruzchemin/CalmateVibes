@@ -182,7 +182,7 @@ function MisPedidos() {
               <h1>
                 Mis Pedidos
               </h1>
-              <p>Aquí puedes ver el estado y detalles de todos tus pedidos, {user?.nombre}</p>
+              <p>Seguí el estado y detalles de todos tus pedidos, {user?.nombre}</p>
             </div>
             <button 
               className="refresh-btn"
