@@ -15,6 +15,7 @@ import productoService from '../services/productoService';
 import categoriaService from '../services/categoriaService';
 
 import './styles/Stock.css';
+import Loading from '../components/shared/Loading';
 
 function Stock() {
   const [catalogos, setCatalogos] = useState([]);
@@ -716,10 +717,7 @@ function Stock() {
         <Header carrito={carrito} userRole="admin" />
         <div className="stock-page">
           <div className="stock-container">
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <p>Cargando productos...</p>
-            </div>
+              <Loading text="Cargando productos..." />
           </div>
         </div>
         <Footer />

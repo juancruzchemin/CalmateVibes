@@ -4,6 +4,7 @@ import categoriaService from '../../services/categoriaService';
 import productoService from '../../services/productoService';
 import fallbackData from '../../data/tiendas.json';
 import '../styles/CategorySelector.css';
+import Loading from '../shared/Loading';
 
 function CategorySelector({ currentCategory }) {
   const navigate = useNavigate();
@@ -167,7 +168,7 @@ function CategorySelector({ currentCategory }) {
           <ul className="category-selector-list" role="listbox">
             {loading ? (
               <li className="category-selector-loading">
-                <span>Cargando categorías...</span>
+                <Loading text="Cargando categorías..." />
               </li>
             ) : categorias.length === 0 ? (
               <li className="category-selector-empty">

@@ -9,6 +9,7 @@ import EmptyCart from '../components/cart/EmptyCart.js';
 import CheckoutForm from '../components/cart/CheckoutForm.js';
 import PaymentMethod from '../components/cart/PaymentMethod.js';
 import '../components/cart/styles/Cart.css';
+import Loading from '../components/shared/Loading';
 
 function Cart() {
     const { carrito, eliminarDelCarrito, vaciarCarrito, actualizarCantidad, loading, error, total: carritoTotal } = useCarrito();
@@ -168,10 +169,7 @@ function Cart() {
             <div className="cart-page-wrapper">
                 <Header />
                 <div className="cart-content-container">
-                    <div className="cart-loading">
-                        <div className="loading-spinner"></div>
-                        <p>Cargando tu carrito...</p>
-                    </div>
+                    <Loading text="Cargando tu carrito..." />
                 </div>
                 <Footer />
             </div>

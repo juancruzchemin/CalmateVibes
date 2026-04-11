@@ -6,6 +6,7 @@ import VentasProductList from '../components/admin/VentasProductList';
 import VentasExportModal from '../components/admin/VentasExportModal';
 import './styles/Ventas.css';
 import '../styles/MobileUtilities.css';
+import Loading from '../components/shared/Loading';
 
 function Ventas() {
   // Estados principales
@@ -224,10 +225,7 @@ function Ventas() {
       <div>
         <Header />
         <div className="ventas-page safe-top safe-bottom">
-          <div className="loading-container mobile-loading">
-            <div className="loading-spinner mobile-loading-spinner"></div>
-            <p className="mobile-text-md">Cargando datos de ventas...</p>
-          </div>
+            <Loading text="Cargando datos de ventas..." />
         </div>
       </div>
     );

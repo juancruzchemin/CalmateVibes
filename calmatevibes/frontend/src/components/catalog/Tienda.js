@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import categoriaService from '../../services/categoriaService';
 import '../styles/Tienda.css';
+import Loading from '../shared/Loading';
 
 function Tienda() {
   const [categorias, setCategorias] = useState([]);
@@ -45,10 +46,7 @@ function Tienda() {
   if (loading) {
     return (
       <div className="tienda">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando categorías...</p>
-        </div>
+          <Loading text="Cargando categorías..." />
       </div>
     );
   }

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './styles/Login.css';
 import Header from '../components/layout/Header';
+import Loading from '../components/shared/Loading';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -128,7 +129,7 @@ function Login() {
     return (
       <div className="login-container">
         <div className="login-card">
-          <div className="loading-spinner">Cargando...</div>
+          <Loading />
         </div>
       </div>
     );

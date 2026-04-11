@@ -9,6 +9,13 @@ import MobileFilters from './MobileFilters.js';
 import { useCarrito } from '../../context/CarritoContext.js';
 import '../styles/Catalog.css';
 
+// Devuelve true solo si la oferta está activa Y no ha caducado
+const isOfertaVigente = (item) => {
+  if (!item.ofertaActiva) return false;
+  if (!item.tiempoOferta) return true; // sin límite de tiempo
+  return new Date(item.tiempoOferta) > new Date();
+};
+
 // Función para calcular el tiempo restante de la oferta
 const calcularTiempoRestante = (tiempoOferta) => {
   if (!tiempoOferta) return null;
@@ -17,7 +24,7 @@ const calcularTiempoRestante = (tiempoOferta) => {
   const fin = new Date(tiempoOferta);
   const diferencia = fin - ahora;
   
-  if (diferencia <= 0) return 'Oferta finalizada';
+  if (diferencia <= 0) return null;
   
   const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
   const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -207,14 +214,14 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
               onMouseLeave={handleMouseLeave}
             >
               {/* Badge de oferta */}
-              {item.ofertaActiva && (
+              {isOfertaVigente(item) && (
                 <div className="product-badge oferta">
                   🔥 OFERTA
                 </div>
               )}
 
               {/* Badge de estado */}
-              {item.estado && !item.ofertaActiva && (
+              {item.estado && !isOfertaVigente(item) && (
                 <div className={`product-badge ${item.estado.toLowerCase().replace(' ', '-')}`}>
                   {item.estado}
                 </div>
@@ -248,7 +255,7 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
               <div className="catalogo-item-info">
                 {/* Precio */}
                 <div className="catalogo-item-price">
-                  {item.ofertaActiva ? (
+                  {isOfertaVigente(item) ? (
                     <div className="price-container">
                       <span className="price-oferta">
                         ${item.tipoDescuento === 'porcentaje' 
@@ -269,7 +276,7 @@ function Catalogo({ catalogo, hideFiltersButton = false, filteredItems = [], onI
                 </div>
 
                 {/* Tiempo restante de la oferta */}
-                {item.ofertaActiva && item.tiempoOferta && (
+                {isOfertaVigente(item) && item.tiempoOferta && calcularTiempoRestante(item.tiempoOferta) && (
                   <div className="offer-countdown">
                     ⏱️ {calcularTiempoRestante(item.tiempoOferta)}
                   </div>

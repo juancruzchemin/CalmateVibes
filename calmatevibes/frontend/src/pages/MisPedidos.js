@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import './styles/MisPedidos.css';
+import Loading from '../components/shared/Loading';
 
 function MisPedidos() {
   const navigate = useNavigate();
@@ -145,10 +146,7 @@ function MisPedidos() {
       <div className="mis-pedidos-wrapper">
         <Header />
         <div className="mis-pedidos-container">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>{!isAuthenticated ? 'Verificando autenticación...' : 'Cargando tus pedidos...'}</p>
-          </div>
+          <Loading text={!isAuthenticated ? 'Verificando autenticación...' : 'Cargando tus pedidos...'} />
         </div>
         <Footer />
       </div>

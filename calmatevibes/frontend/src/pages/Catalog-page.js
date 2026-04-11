@@ -15,6 +15,7 @@ import bombillasData from '../data/catalogo-bombillas.json';
 import combosData from '../data/catalogo-combos.json';
 
 import './styles/Catalog-page.css';
+import Loading from '../components/shared/Loading';
 
 function Catalog() {
   const { catalogoId } = useParams(); // Obtiene el ID del catálogo desde la URL
@@ -222,10 +223,7 @@ function Catalog() {
     return (
       <div className="catalog-page-wrapper">
         <Header carrito={carrito} userRole="client" />
-        <div className="catalog-loading-container">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Cargando catálogo...</p>
-        </div>
+          <Loading text="Cargando catálogo..." />
         <Footer />
       </div>
     );

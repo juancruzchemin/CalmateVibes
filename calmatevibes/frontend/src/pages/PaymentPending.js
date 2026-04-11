@@ -4,6 +4,7 @@ import { procesarResultadoPago, verificarEstadoPago } from '../services/pagoServ
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import './styles/PaymentResult.css';
+import Loading from '../components/shared/Loading';
 
 function PaymentPending() {
     const [searchParams] = useSearchParams();
@@ -74,10 +75,7 @@ function PaymentPending() {
             <div className="payment-result-page">
                 <Header />
                 <div className="payment-result-container">
-                    <div className="loading-payment">
-                        <div className="loading-spinner"></div>
-                        <h2>Procesando información...</h2>
-                    </div>
+                    <Loading text="Procesando información..." />
                 </div>
                 <Footer />
             </div>

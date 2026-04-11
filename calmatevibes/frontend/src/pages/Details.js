@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import './styles/Details.css';
+import Loading from '../components/shared/Loading';
 
 function Details() {
   const { type, id } = useParams(); // type puede ser 'pedido', 'producto', etc.
@@ -423,10 +424,7 @@ function Details() {
       <div className="details-wrapper">
         <Header />
         <div className="details-container">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Cargando detalles...</p>
-          </div>
+          <Loading text="Cargando detalles..." />
         </div>
         <Footer />
       </div>

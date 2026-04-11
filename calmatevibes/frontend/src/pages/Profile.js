@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import './styles/Profile.css';
+import Loading from '../components/shared/Loading';
 
 function Profile() {
   const { user, getAuthHeaders, isAuthenticated } = useAuth();
@@ -256,10 +257,7 @@ function Profile() {
       <div className="profile-wrapper">
         <Header />
         <div className="profile-container">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Verificando autenticación...</p>
-          </div>
+          <Loading text="Verificando autenticación..." />
         </div>
         <Footer />
       </div>

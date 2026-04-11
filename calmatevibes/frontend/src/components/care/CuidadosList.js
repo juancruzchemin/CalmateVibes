@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import cuidadoService from '../../services/cuidadoService';
 import './CuidadosList.css';
+import Loading from '../shared/Loading';
 
 const CuidadosList = ({ categoria = null }) => {
     const [cuidados, setCuidados] = useState([]);
@@ -28,10 +29,7 @@ const CuidadosList = ({ categoria = null }) => {
 
     if (loading) {
         return (
-            <div className="cuidados-loading">
-                <div className="loading-spinner"></div>
-                <p>Cargando cuidados...</p>
-            </div>
+            <Loading text="Cargando cuidados..." />
         );
     }
 

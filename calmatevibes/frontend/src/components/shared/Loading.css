@@ -1,0 +1,41 @@
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.loading-fullpage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 44px;
+    height: 44px;
+    border: 4px solid #e9ecef;
+    border-top: 4px solid #52691a;
+    border-radius: 50%;
+    animation: loading-spin 0.9s linear infinite;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+@keyframes loading-spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6c757d;
+    margin: 0;
+}
