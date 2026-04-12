@@ -18,6 +18,7 @@ import Cart from './pages/Cart.js';
 import CrearItem from './pages/CrearItem.js';
 import OfferManagementPage from './pages/OfferManagementPage.js';
 import CuidadosAdmin from './pages/CuidadosAdmin.js';
+import Colaboradores from './pages/Colaboradores.js';
 import PaymentSuccess from './pages/PaymentSuccess.js';
 import PaymentFailure from './pages/PaymentFailure.js';
 import PaymentPending from './pages/PaymentPending.js';
@@ -158,6 +159,14 @@ const AppWithProviders = () => {
             element={
               <ProtectedRoute requireAdmin={true}>
                 <CuidadosAdmin />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/colaboradores" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <Colaboradores />
               </ProtectedRoute>
             } 
           />

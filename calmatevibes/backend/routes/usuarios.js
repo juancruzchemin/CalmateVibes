@@ -11,6 +11,7 @@ const {
   eliminarDireccion,
   solicitarResetPassword,
   resetPassword,
+  cambiarRolUsuario,
   obtenerUsuarios
 } = require('../controllers/usuarioController');
 
@@ -41,5 +42,6 @@ router.route('/direcciones/:direccionId')
 
 // Rutas de administrador
 router.get('/', admin, obtenerUsuarios);
+router.put('/:id/rol', admin, cambiarRolUsuario);
 
 module.exports = router;

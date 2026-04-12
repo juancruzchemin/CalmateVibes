@@ -299,24 +299,6 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .cart-page-wrapper {
-    background-color: #1a1a1a;
-  }
-
-  .cart-items-section,
-  .checkout-form-section,
-  .payment-method-section {
-    background-color: #2d2d2d;
-    color: #ffffff;
-  }
-
-  .cart-title {
-    color: #b7c774;
-  }
-}
-
 /* High DPI displays */
 @media (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
@@ -325,53 +307,6 @@
   .checkout-form-section,
   .payment-method-section {
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* ========== CONTINUE BUTTON SECTION ========== */
-.cart-continue-section {
-  margin-top: 1rem;
-  padding: 0;
-}
-
-.btn-continue-checkout {
-  width: 100%;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #52691a 0%, #6b8e23 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(82, 105, 26, 0.3);
-}
-
-.btn-continue-checkout:hover {
-  background: linear-gradient(135deg, #45591a 0%, #5a7620 100%);
-  box-shadow: 0 6px 16px rgba(82, 105, 26, 0.4);
-  transform: translateY(-2px);
-}
-
-.btn-continue-checkout:active {
-  transform: translateY(0);
-  box-shadow: 0 3px 8px rgba(82, 105, 26, 0.3);
-}
-
-/* Responsive continue button */
-@media (max-width: 768px) {
-  .cart-continue-section {
-    margin-top: 1rem;
-    padding: 0 1rem;
-  }
-
-  .btn-continue-checkout {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-    border-radius: 6px;
   }
 }
 
@@ -534,9 +469,7 @@
 }
 
 .mobile-step-content {
-  padding: 1rem 20px 20px 20px;
   background: #ffffff;
-  border-top: 1px solid #f0f0f0;
 }
 
 /* ========== CONTINUE CHECKOUT BUTTON ========== */
@@ -610,7 +543,7 @@
 /* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 768px) {
   .cart-content-container {
-    padding: 1rem;
+    padding: 5rem 1rem 2rem 1rem;
   }
 
   /* Mostrar header mobile con total */
@@ -691,6 +624,11 @@
     background: #5a6268;
   }
 
+  /* Dos columnas en el formulario de datos de envío mobile */
+  .mobile-checkout-steps .checkout-form-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
 
 }
 

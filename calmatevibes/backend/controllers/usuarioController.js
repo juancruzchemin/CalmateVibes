@@ -414,6 +414,56 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// @desc    Cambiar rol de un usuario (solo admin)
+// @route   PUT /api/usuarios/:id/rol
+// @access  Private/Admin
+const cambiarRolUsuario = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rol } = req.body;
+
+    if (!['cliente', 'admin'].includes(rol)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rol inválido. Los valores permitidos son: cliente, admin'
+      });
+    }
+
+    // Un admin no puede cambiar su propio rol
+    if (req.usuario._id.toString() === id) {
+      return res.status(400).json({
+        success: false,
+        message: 'No podés cambiar tu propio rol'
+      });
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(
+      id,
+      { rol },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: usuario,
+      message: `Rol actualizado a "${rol}" correctamente`
+    });
+  } catch (error) {
+    console.error('Error al cambiar rol:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 // @desc    Obtener todos los usuarios (solo admin)
 // @route   GET /api/usuarios
 // @access  Private/Admin
@@ -475,5 +525,6 @@ module.exports = {
   eliminarDireccion,
   solicitarResetPassword,
   resetPassword,
+  cambiarRolUsuario,
   obtenerUsuarios
 };

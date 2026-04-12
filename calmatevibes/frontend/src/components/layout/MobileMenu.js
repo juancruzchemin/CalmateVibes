@@ -165,6 +165,16 @@ function MobileMenu({
               >
                 Cuidados
               </Link>
+              <Link
+                to="/colaboradores"
+                className="admin-dropdown-item"
+                onClick={() => {
+                  setAdminDropdownOpen(false);
+                  closeMobileMenu();
+                }}
+              >
+                Colaboradores
+              </Link>
             </div>
           )}
         </div>

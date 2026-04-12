@@ -303,6 +303,7 @@
     transition: transform 0.3s ease-in-out;
     overflow-y: auto;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
   }
   
   .header-nav.open {
