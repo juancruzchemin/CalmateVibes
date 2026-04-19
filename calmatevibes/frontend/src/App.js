@@ -22,8 +22,7 @@ import Colaboradores from './pages/Colaboradores.js';
 import PaymentSuccess from './pages/PaymentSuccess.js';
 import PaymentFailure from './pages/PaymentFailure.js';
 import PaymentPending from './pages/PaymentPending.js';
-import ResetPassword from './pages/ResetPassword.js';
-import { CarritoProvider, useCarrito } from './context/CarritoContext.js';
+import ResetPassword from './pages/ResetPassword.js';import LoadingTest from './pages/LoadingTest';import { CarritoProvider, useCarrito } from './context/CarritoContext.js';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import catalogos from './data/tiendas.json';
@@ -65,6 +64,7 @@ const AppWithProviders = () => {
           <Route path="/care" element={<Cuidados />} />
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/test" element={<LoadingTest />} />
           
           {/* Rutas de resultado de pago */}
           <Route path="/pago/exito" element={<PaymentSuccess />} />
