@@ -1,15 +1,29 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { body } = require('express-validator');
 const Usuario = require('../models/Usuario');
 const { protect } = require('../middleware/auth');
+const validate = require('../middleware/validate');
+const { authLimiter, resetLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
 // @desc    Registrar un nuevo usuario
 // @route   POST /api/auth/register
 // @access  Public
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, [
+  body('nombre').trim().notEmpty().withMessage('El nombre es obligatorio')
+    .isLength({ max: 50 }).withMessage('El nombre no puede exceder 50 caracteres'),
+  body('apellido').trim().notEmpty().withMessage('El apellido es obligatorio')
+    .isLength({ max: 50 }).withMessage('El apellido no puede exceder 50 caracteres'),
+  body('email').trim().isEmail().withMessage('Email inválido')
+    .normalizeEmail(),
+  body('password').isLength({ min: 6, max: 128 })
+    .withMessage('La contraseña debe tener entre 6 y 128 caracteres'),
+  body('telefono').optional({ checkFalsy: true }).trim()
+    .isLength({ max: 30 }).withMessage('Teléfono inválido'),
+], validate, async (req, res) => {
   try {
     const { nombre, apellido, email, password, telefono } = req.body;
 
@@ -70,7 +84,11 @@ router.post('/register', async (req, res) => {
 // @desc    Iniciar sesión
 // @route   POST /api/auth/login
 // @access  Public
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, [
+  body('email').trim().isEmail().withMessage('Email inválido').normalizeEmail(),
+  body('password').notEmpty().withMessage('La contraseña es obligatoria')
+    .isLength({ max: 128 }).withMessage('Contraseña inválida'),
+], validate, async (req, res) => {
   try {
     const { email, password } = req.body;
 

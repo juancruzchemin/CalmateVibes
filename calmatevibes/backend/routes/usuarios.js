@@ -16,12 +16,13 @@ const {
 } = require('../controllers/usuarioController');
 
 const { protect, admin } = require('../middleware/auth');
+const { resetLimiter } = require('../middleware/rateLimiter');
 
 // Rutas públicas
 router.post('/registro', registrarUsuario);
 router.post('/login', loginUsuario);
-router.post('/solicitar-reset-password', solicitarResetPassword);
-router.put('/reset-password/:token', resetPassword);
+router.post('/solicitar-reset-password', resetLimiter, solicitarResetPassword);
+router.put('/reset-password/:token', resetLimiter, resetPassword);
 
 // Rutas protegidas (requieren autenticación)
 router.use(protect); // Middleware aplicado a todas las rutas siguientes

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
 const {
   crearEnvio,
   obtenerEnvio,
@@ -14,14 +15,20 @@ const {
   confirmarEntrega
 } = require('../controllers/envioController');
 
-const { protect, admin, optionalAuth } = require('../middleware/auth');
+const { protect, admin } = require('../middleware/auth');
+const validate = require('../middleware/validate');
 
 // Rutas públicas
 // Tracking público por número
 router.get('/tracking/:numero', obtenerPorTracking);
 
 // Calcular costo de envío (público)
-router.post('/calcular-costo', calcularCostoEnvio);
+router.post('/calcular-costo', [
+  body('peso').isFloat({ min: 0 }).withMessage('El peso debe ser un número positivo'),
+  body('destino').trim().notEmpty().withMessage('El destino es obligatorio')
+    .isLength({ max: 200 }).withMessage('Destino inválido'),
+  body('origen').optional().trim().isLength({ max: 200 }).withMessage('Origen inválido'),
+], validate, calcularCostoEnvio);
 
 // Rutas que requieren autenticación
 router.use(protect);
