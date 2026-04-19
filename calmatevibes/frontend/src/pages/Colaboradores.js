@@ -4,6 +4,7 @@ import Footer from '../components/layout/Footer';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import usuarioService from '../services/usuarioService';
+import Loading from '../components/shared/Loading';
 import './styles/Colaboradores.css';
 
 function Colaboradores() {
@@ -105,10 +106,7 @@ function Colaboradores() {
 
           {/* Estados */}
           {loading && (
-            <div className="colaboradores-loading">
-              <div className="loading-spinner-col"></div>
-              <p>Cargando usuarios...</p>
-            </div>
+            <Loading text="Cargando usuarios..." />
           )}
 
           {error && (

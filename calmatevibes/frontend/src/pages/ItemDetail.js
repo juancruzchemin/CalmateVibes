@@ -5,6 +5,7 @@ import Footer from '../components/layout/Footer.js';
 import Notification from '../components/ui/Notification.js';
 import { CarritoContext } from '../context/CarritoContext.js';
 import productoService from '../services/productoService.js';
+import Loading from '../components/shared/Loading';
 import './styles/ItemDetail.css';
 
 function ItemDetail() {
@@ -117,10 +118,7 @@ function ItemDetail() {
       <Header carrito={carrito} userRole="client" />
       <main className="item-detail-main">
         {loading && (
-          <div className="item-detail-loading">
-            <div className="item-detail-spinner"></div>
-            <p>Cargando producto...</p>
-          </div>
+          <Loading text="Cargando producto..." fullPage />
         )}
 
         {!loading && (error || !item) && (
